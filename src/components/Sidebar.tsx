@@ -1,37 +1,31 @@
-import { Search, LayoutDashboard, Info, ChevronDown } from "lucide-react";
+import { Search, LayoutDashboard, Info, ChevronDown,Database } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-
+import logo from '../assets/logo.png';
 interface SidebarProps {
   activeItem: string;
+  activeTab?: string;
+  onTabClick: (tab: string) => void;
   onItemClick: (item: string) => void;
 }
-
-export function Sidebar({ activeItem, onItemClick }: SidebarProps) {
+const onButtonClick = (tab: string,item:string, onTabClick: (tab: string) => void, onItemClick: (item: string) => void) => {
+  onTabClick(tab);
+  onItemClick(item);
+};
+export function Sidebar({ activeItem, onItemClick, activeTab, onTabClick }: SidebarProps) {
   return (
     <div className="w-64 bg-white border-r border-border h-full flex flex-col">
       {/* University Logo */}
       <div className="p-4 border-b border-border">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center">
-            <div className="w-6 h-6 bg-gray-400 rounded"></div>
+        <div className="flex-1 items-center gap-2">
+          <div className="w-full rounded flex items-center justify-center">
+            <img src={logo} alt="Logo" className="w-full" />
           </div>
-          <div>
-            <div className="text-xs text-muted-foreground">UNIVERSIDAD</div>
-            <div className="text-xs font-medium">NACIONAL</div>
-            <div className="text-xs text-muted-foreground">DE COLOMBIA</div>
+          <div className="mt-2 space-y-0.5 bg-gray-100 p-2 rounded">
+            <div className="text-xs text-muted-foreground text-center">CENTRO DE PENSAMIENTO</div>
+            <div className="text-xs font-medium text-center">MEDICAMENTOS</div>
+            <div className="text-xs text-muted-foreground text-center">INFORMACIÓN Y PODER</div>
           </div>
-        </div>
-      </div>
-
-      {/* Search */}
-      <div className="p-4 border-b border-border">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-          <Input 
-            placeholder="Buscar..." 
-            className="pl-10 bg-input-background border-0"
-          />
         </div>
       </div>
 
@@ -41,7 +35,7 @@ export function Sidebar({ activeItem, onItemClick }: SidebarProps) {
           <Button
             variant={activeItem === 'dashboard' ? 'secondary' : 'ghost'}
             className="w-full justify-start"
-            onClick={() => onItemClick('dashboard')}
+            onClick={() => onButtonClick('dashboard','dashboard',onTabClick,onItemClick)}
           >
             <LayoutDashboard className="w-4 h-4 mr-2" />
             Dashboard
@@ -50,10 +44,18 @@ export function Sidebar({ activeItem, onItemClick }: SidebarProps) {
           <Button
             variant={activeItem === 'acerca' ? 'secondary' : 'ghost'}
             className="w-full justify-start"
-            onClick={() => onItemClick('acerca')}
+            onClick={() => onButtonClick('acerca','acerca',onTabClick,onItemClick)}
           >
             <Info className="w-4 h-4 mr-2" />
             Acerca de
+          </Button>
+          <Button
+            variant={activeItem === 'Tabla de datos' ? 'secondary' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => onButtonClick('Tabla de datos','Tabla de datos',onTabClick,onItemClick)}
+          >
+            <Database className="w-4 h-4 mr-2" />
+            Tabla de datos
           </Button>
 
           <Button
