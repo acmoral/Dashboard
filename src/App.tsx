@@ -54,7 +54,10 @@ export default function App() {
                 <h2 className="text-xl font-semibold text-muted-foreground">
                   Tabla de datos
                 </h2>
-                <AuthorsTable />
+               
+                <div className="mt-6">
+                  <AuthorsTable />
+                </div>
               </div>
             ):
             activeTab === 'acerca' ? (

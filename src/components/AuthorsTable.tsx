@@ -1,37 +1,35 @@
+import {fetchDatabase} from "./FetchDatabase";
+import { useEffect,useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
-interface Author {
-  name: string;
-  publications: number;
-  citations: number;
-  hIndex: number;
-}
-
-const authors: Author[] = [
-  { name: 'Juan Pérez', publications: 50, citations: 1200, hIndex: 20 },
-  { name: 'María Gómez', publications: 40, citations: 900, hIndex: 18 },
-  { name: 'Carlos Rodríguez', publications: 30, citations: 700, hIndex: 15 },
-];
 
 export function AuthorsTable() {
+  const [rows, setRows] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await fetchDatabase();
+      setRows(data);
+    };
+    fetchData();
+  }, []);
+
   return (
     <div className="p-4">
-      <h3 className="text-sm font-medium mb-4">Autores Destacados</h3>
-      <Table>
+      <h3 className="text-sm font-medium mb-4">Datos crudos</h3>
+      <Table style={{ tableLayout: 'fixed', width: '100%' }}>
         <TableHeader>
           <TableRow>
-            <TableHead>Nombre</TableHead>
-            <TableHead>Publicaciones</TableHead>
-            <TableHead>Citas</TableHead>
-            <TableHead>Índice h</TableHead>
+            {rows[0] && Object.keys(rows[0]).map((key) => (
+              <TableHead className="text-left w-64 truncate" key={key}>{key}</TableHead>
+            )) }
           </TableRow>
         </TableHeader>
         <TableBody>
-          {authors.map((author) => (
-            <TableRow key={author.name}>
-              <TableCell>{author.name}</TableCell>
-              <TableCell>{author.publications}</TableCell>
-              <TableCell>{author.citations}</TableCell>
-              <TableCell>{author.hIndex}</TableCell>
+          {rows.map((row: any, index: number) => (
+            <TableRow key={index}>
+              {Object.entries(row).map(([key, value]) => (
+                <TableCell className="text-left w-64 truncate" key={key}>{value}</TableCell>
+              ))}
             </TableRow>
           ))}
         </TableBody>
