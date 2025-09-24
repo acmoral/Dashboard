@@ -1,5 +1,6 @@
 export async function fetchDatabase() {
-  const res = await fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vTCXklDWTEuDLGjn0xBdpbXMgJhjXFusekGHXz3MAO-_rTGH0kbLi-ejDKp1reIYZBO3BhNUYiXq8nn/pub?output=csv");
+  const url = import.meta.env.VITE_GOOGLE_SHEET_URL;
+  const res = await fetch(url);
   const csvText = await res.text();
   const lines = csvText.split("\n");
   const headers = lines[0].split(",");
@@ -10,5 +11,6 @@ export async function fetchDatabase() {
       return obj;
     }, {} as Record<string, string>);
   });
+  
   return data;
 }

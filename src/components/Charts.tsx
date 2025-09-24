@@ -29,9 +29,9 @@ const timelineData = [
   { year: '2017', value: 65 }
 ];
 
-function DonutChart({ data, title, centerText }: { data: any[], title: string, centerText?: string }) {
+function DonutChart({ data, title, centerText,className }: { data: any[], title: string, centerText?: string, className?: string }) {
   return (
-    <Card className="p-4">
+    <Card className={`p-3 ${className}`}>
       <h3 className="text-sm font-medium mb-4">{title}</h3>
       <div className="relative h-48">
         <ResponsiveContainer width="100%" height="100%">
@@ -40,8 +40,8 @@ function DonutChart({ data, title, centerText }: { data: any[], title: string, c
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius={60}
-              outerRadius={80}
+              innerRadius={"60%"}
+              outerRadius={"80%"}
               paddingAngle={5}
               dataKey="value"
             >
@@ -57,7 +57,7 @@ function DonutChart({ data, title, centerText }: { data: any[], title: string, c
           </div>
         )}
       </div>
-      <div className="mt-4 space-y-2">
+      <div className="mt-4 space-y-2 overflow-y-auto max-h-32">
         {data.map((item, index) => (
           <div key={index} className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
@@ -75,19 +75,19 @@ function DonutChart({ data, title, centerText }: { data: any[], title: string, c
   );
 }
 
-function PathologyChart() {
+function PathologyChart({className}: {className?: string}) {
   return (
-    <Card className="p-4">
+    <Card className={`p-4 ${className}`}>
       <h3 className="text-sm font-medium mb-4">Patologías principales</h3>
       <div className="relative h-48">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="90%" height="90%">
           <PieChart>
             <Pie
               data={pathologyData}
               cx="50%"
               cy="50%"
-              innerRadius={50}
-              outerRadius={80}
+              innerRadius={"50%"}
+              outerRadius={"80%"}
               paddingAngle={2}
               dataKey="value"
             >
@@ -98,7 +98,7 @@ function PathologyChart() {
           </PieChart>
         </ResponsiveContainer>
       </div>
-      <div className="mt-4 space-y-2">
+      <div className="mt-4 space-y-2 overflow-y-auto max-h-32">
         {pathologyData.map((item, index) => (
           <div key={index} className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
@@ -118,8 +118,7 @@ function PathologyChart() {
     </Card>
   );
 }
-
-function TimelineChart() {
+/* function TimelineChart() {
   return (
     <Card className="p-4">
       <h3 className="text-sm font-medium mb-4">Línea temporal</h3>
@@ -135,23 +134,29 @@ function TimelineChart() {
       </div>
     </Card>
   );
-}
+} */
 
 export function Charts() {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+    <div className="bg-black h-full grid grid-cols-2 grid-rows-2 gap-4 auto-rows-fr">
       <DonutChart 
         data={accessTypeData} 
         title="Tipo de acceso" 
         centerText="67%"
+        className="col-span-1 row-span-1 "
       />
       <DonutChart 
         data={accessTypeData} 
         title="Tipo de acceso"
+        className="col-span-1 row-span-1 col-start-2 row-start-1"
       />
-      <PathologyChart />
+      <DonutChart 
+        data={accessTypeData} 
+        title="Tipo de acceso"
+        className="col-span-1 row-span-1 row-start-2 col-start-2"
+      />
+      <PathologyChart className="col-span-1 row-span-1 row-start-2 col-start-1" />
       <div className="xl:col-span-2">
-        <TimelineChart />
       </div>
     </div>
   );

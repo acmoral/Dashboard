@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import MapComponent  from './mapView';
+import Flag from "react-world-flags";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 const countries = [
@@ -41,11 +42,10 @@ export function CountrySection() {
         {/* Simple map representation */}
           {/* Replace with actual map component */}
           <MapComponent selectedCountries={selectedCountries} />
-
       </Card>
 
       {/* Country List */}
-      <Card className="p-4">
+      <Card className="p-4 ">
         <h3 className="text-sm font-medium mb-4">Países</h3>
         <div className="space-y-3">
           {countries.map((country) => (
@@ -58,7 +58,7 @@ export function CountrySection() {
             >
               <div className="flex items-center gap-3">
                 <div className="w-6 h-4 rounded bg-gradient-to-r from-red-500 to-yellow-500 flex items-center justify-center">
-                  <span className="text-xs">{country.flag}</span>
+                  <Flag code={country.code} style={{ width: '2em', height: '2em' }} />
                 </div>
                 <span className="font-medium">{country.name}</span>
               </div>

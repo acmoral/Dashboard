@@ -28,11 +28,10 @@ function StatCard({ title, value, percentage, showPercentageBadge, variant = 'de
 
 export function StatsCards() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className=" h-full grid grid-cols-4 gap-4">
       <StatCard 
         title="Total de estudios" 
         value="296" 
-        percentage="100%" 
       />
       <StatCard 
         title="Autores" 

@@ -7,14 +7,16 @@ import {DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem
 import { Calendar, ArrowRight, MoreHorizontal } from "lucide-react";
 
 interface DashboardHeaderProps {
-  activeAuthors: string;
+  availableAuthors: string[];
+  availableTopics: string[];
+  activeAuthors: string[];
   activeTopics: string;
   onAuthorFilterChange: (filter: string) => void;
   onTopicFilterChange: (filter: string) => void;
 
 }
 
-export function DashboardHeader({ activeAuthors, activeTopics, onAuthorFilterChange, onTopicFilterChange }: DashboardHeaderProps) {
+export function DashboardHeader({ activeAuthors, availableAuthors, activeTopics, availableTopics, onAuthorFilterChange, onTopicFilterChange }: DashboardHeaderProps) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
@@ -34,15 +36,17 @@ export function DashboardHeader({ activeAuthors, activeTopics, onAuthorFilterCha
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button type="button" variant="outline" className="relative pl-3 pr-8 text-sm bg-input-background border-0">
-                      {activeAuthors === 'all' ? 'Todos los autores' : activeAuthors}
+                      {activeAuthors.length ===  availableAuthors.length || activeAuthors.length === 0 ? 'Todos los autores' : activeAuthors[activeAuthors.length - 1]}
                       <MoreHorizontal className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-48 z-50">
-                    <DropdownMenuCheckboxItem onClick={() => onAuthorFilterChange('all')}>Todos los autores</DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem onClick={() => onAuthorFilterChange('author1')}>Autor 1</DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem onClick={() => onAuthorFilterChange('author2')}>Autor 2</DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem onClick={() => onAuthorFilterChange('author3')}>Autor 3</DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem onClick={() => onAuthorFilterChange('all')} className={activeAuthors.length === availableAuthors.length ? "bg-gray-100 font-semibold text-primary" : ""}>Todos los autores</DropdownMenuCheckboxItem>
+                    {availableAuthors.map((author) => (
+                      <DropdownMenuCheckboxItem key={author} onClick={() => onAuthorFilterChange(author)} className={activeAuthors.includes(author) && activeAuthors.length < availableAuthors.length ? "bg-gray-100 font-semibold text-primary" : ""}>
+                        {author}
+                      </DropdownMenuCheckboxItem>
+                    ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
