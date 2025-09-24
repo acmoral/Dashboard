@@ -10,13 +10,13 @@ interface StatCardProps {
 
 function StatCard({ title, value, percentage, showPercentageBadge, variant = 'default' }: StatCardProps) {
   return (
-    <Card className={`p-4 hover:shadow-md transition-shadow ${variant === 'accent' ? 'bg-accent/50' : ''}`}>
-      <div className="space-y-1">
-        <p className="text-sm text-muted-foreground">{title}</p>
+    <Card className={`p-2  lg:p-4 xl:p-2 xxl:p-4 hover:shadow-md transition-shadow ${variant === 'accent' ? 'bg-accent/50' : ''}`}>
+      <div className="space-y-2">
+        <p className="sm:text-2xl md:text-2xl lg:text-xl sl:text-xl xl:text-xl xxl:text-2xl text-muted-foreground">{title}</p>
         <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-semibold">{value}</span>
+          <span className="sm:text-2xl md:text-2xl lg:text-xl sl:text-xl xl:text-xl xxl:text-2xl font-semibold">{value}</span>
           {percentage && (
-            <span className={`text-sm ${showPercentageBadge ? 'bg-muted px-2 py-1 rounded-full' : 'text-muted-foreground'}`}>
+            <span className={`sm:text-xl md:text-xl lg:text-xl sl:text-xl xl:text-xl xxl:text-2xl ${showPercentageBadge ? 'bg-muted px-2 py-1 rounded-full' : 'text-muted-foreground'}`}>
               {percentage}
             </span>
           )}
@@ -28,7 +28,10 @@ function StatCard({ title, value, percentage, showPercentageBadge, variant = 'de
 
 export function StatsCards() {
   return (
-    <div className=" h-full grid grid-cols-4 gap-4">
+    <div className="h-full lg:grid lg:grid-cols-4 lg:grid-rows-1 sm:flex sm:flex-col md:grid md:grid-cols-2 md:grid-rows-2 lg:gap-4 sm:gap-4 md:gap-4">
+{/*       <div className="h-full bg-blue">
+        <p>hi</p>
+      </div> */}
       <StatCard 
         title="Total de estudios" 
         value="296" 
@@ -39,6 +42,7 @@ export function StatsCards() {
         percentage="100%" 
         showPercentageBadge 
       />
+
       <StatCard 
         title="Lugares de afiliación de autores" 
         value="32" 

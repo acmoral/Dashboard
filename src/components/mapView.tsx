@@ -49,26 +49,32 @@ export default function MapComponent({ selectedCountries }: { selectedCountries:
 
   // Update paint property when selectedCountries changes
   useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-    if (map.getLayer("south-america-layer")) {
-      map.setPaintProperty(
-        "south-america-layer",
-        "fill-color",
-        [
-          'case',
-          ['in', ['get', 'ISO3166-1-Alpha-3'], ['literal', selectedCountries]],
-          '#030213',
-          'transparent'
-        ]
-      );
-    }
-  }, [selectedCountries]);
+  const map = mapRef.current;
+  if (!map) return;
+
+  if (map.getLayer("south-america-layer")) {
+    const primaryColor = getComputedStyle(document.documentElement)
+      .getPropertyValue("--primary")
+      .trim();
+
+    map.setPaintProperty(
+      "south-america-layer",
+      "fill-color",
+      [
+        "case",
+        ["in", ["get", "ISO3166-1-Alpha-3"], ["literal", selectedCountries]],
+        primaryColor,
+        "transparent"
+      ]
+    );
+  }
+}, [selectedCountries]);
+
 
   return (
     <div
       ref={mapContainerRef}
-      style={{ width: "100%", height: "500px", borderRadius: "12px" }}
+      style={{ width: "100%", height: "100%", borderRadius: "12px" }}
     />
   );
 }

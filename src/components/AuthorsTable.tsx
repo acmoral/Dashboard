@@ -7,12 +7,12 @@ interface AuthorsTableProps {
 export function AuthorsTable({ rows, setRows, activeAuthors }: AuthorsTableProps) {
   return (
     <div className="p-4">
-      <h3 className="text-sm font-medium mb-4">Datos crudos</h3>
+      <h3 className="sm:text-lg md:text-lg lg:text-lg xxl:text-lg  font-medium mb-4">Datos crudos</h3>
       <Table style={{ tableLayout: 'fixed', width: '100%' }}>
         <TableHeader>
           <TableRow>
             {rows[0] && Object.keys(rows[0]).map((key) => (
-              <TableHead className="text-left w-64 truncate" key={key}>{key}</TableHead>
+              <TableHead className="sm:text-lg md:text-lg lg:text-lg xxl:text-lg  text-left w-64 truncate" key={key}>{key}</TableHead>
             )) }
           </TableRow>
         </TableHeader>
@@ -22,7 +22,7 @@ export function AuthorsTable({ rows, setRows, activeAuthors }: AuthorsTableProps
               return (
                 <TableRow key={index}>
                   {Object.entries(row).map(([key, value]) => (
-                    <TableCell className="text-left w-64 truncate" key={key}>{value}</TableCell>
+                    <TableCell className="sm:text-lg md:text-lg lg:text-lg xxl:text-lg  text-left w-64 truncate" key={key}>{value}</TableCell>
                   ))}
                 </TableRow>
               );

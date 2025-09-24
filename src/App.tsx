@@ -56,41 +56,41 @@ export default function App() {
     setActiveTopics(filter);
   };  
   return (
-    <div className="flex h-svh bg-red">
+    <div className="flex h-svh">
       {/* Sidebar */}
       <Sidebar activeItem={activeItem} activeTab={activeTab} onItemClick={handleItemClick} onTabClick={handleTabChange} />
 
       {/* Main Content */}
-      <div className="h-full w-full bg-black grid grid-rows-[30%_70%]">
+      <div className="h-full w-full grid grid-rows-[30%_70%]">
         {/* Header */}
         <div className="overflow-hidden">
         <DashboardHeader availableAuthors={availableAuthors} availableTopics={availableTopics} activeAuthors={activeAuthors} activeTopics={activeTopics} onAuthorFilterChange={handleAuthorFilterChange} onTopicFilterChange={handleTopicFilterChange} />
         </div>
         {/* Content */}
-        <div className="bg-blue overflow-hidden">
+        <div className=" overflow-hidden">
           <div className="w-full h-full">
             {activeTab === 'dashboard' ? (
-              <div className="bg-green h-full grid grid-cols-5 grid-rows-7 gap-4 p-4">
+              <div className="h-full  sm:flex sm:gap-4 sm:overflow-y:auto sm:flex-col md:overflow-y:auto lg:grid lg:grid-cols-5 lg:grid-rows-7 xl:grid xl:grid-cols-5 xl:grid-rows-7  gap-4 p-4">
                 {/* Statistics Cards */}
-                <div className="bg-black col-span-5 w-full ">
+                <div className="sm:flex sm:justify-center lg:col-span-5 xl:col-span-5  w-full ">
                   <StatsCards />
                 </div>
 
-                <div className="bg-red col-start-1 col-span-2 row-span-9 row-start-2">
+                <div className="sm:flex-1 md:row-span-9 md:row-start-2 lg:col-start-1 lg:col-span-3 xl:col-start-1 xl:col-span-3">
                   <Charts />
                 </div>
 
-                <div className="bg-white col-span-3 row-span-9 col-start-3 row-start-2">
+                <div className="sm:flex sm:flex-col lg:col-span-2 lg:row-span-7 lg:col-start-3 lg:row-start-2 xl:col-span-2 xl:row-span-9 xl:col-start-4 xl:row-start-2">
                   <CountrySection />
                 </div>
               </div>
             ) : activeTab === 'Tabla de datos' ? (
-              <div className="text-center py-12">
-                <h2 className="text-xl font-semibold text-muted-foreground">
+              <div className="p-6 h-full flex flex-col overflow-y-auto text-center py-12">
+                <h2 className="sm:text-xl md:text-xl lg:text-xl xxl:text-3xl flex justify-center font-semibold text-muted-foreground">
                   Tabla de datos
                 </h2>
                
-                <div className="mt-6">
+                <div className="flex-1 overflow-y-auto mt-6">
                   <AuthorsTable  rows={rows} setRows={setRows} activeAuthors={activeAuthors} />
                 </div>
               </div>

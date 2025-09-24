@@ -14,7 +14,7 @@ const onButtonClick = (tab: string,item:string, onTabClick: (tab: string) => voi
 };
 export function Sidebar({ activeItem, onItemClick, activeTab, onTabClick }: SidebarProps) {
   return (
-    <div className="w-64 bg-white border-r border-border h-full flex flex-col">
+    <div className="w-80  bg-white border-r border-border h-full flex flex-col">
       {/* University Logo */}
       <div className="p-4 border-b border-border">
         <div className="flex-1 items-center gap-2">
@@ -22,9 +22,9 @@ export function Sidebar({ activeItem, onItemClick, activeTab, onTabClick }: Side
             <img src={logo} alt="Logo" className="w-full" />
           </div>
           <div className="mt-2 space-y-0.5 bg-gray-100 p-2 rounded">
-            <div className="text-xs text-muted-foreground text-center">CENTRO DE PENSAMIENTO</div>
-            <div className="text-xs font-medium text-center">MEDICAMENTOS</div>
-            <div className="text-xs text-muted-foreground text-center">INFORMACIÓN Y PODER</div>
+            <div className="sm:text-xl md:text-xl lg:text-xl xxl:text-md text-muted-foreground text-center">CENTRO DE PENSAMIENTO</div>
+            <div className="sm:text-md md:text-md lg:text-md xxl:text-sm font-medium text-center">MEDICAMENTOS</div>
+            <div className="sm:text-md md:text-md lg:text-md xxl:text-sm text-muted-foreground text-center">INFORMACIÓN Y PODER</div>
           </div>
         </div>
       </div>
@@ -34,16 +34,16 @@ export function Sidebar({ activeItem, onItemClick, activeTab, onTabClick }: Side
         <div className="space-y-2">
           <Button
             variant={activeItem === 'dashboard' ? 'secondary' : 'ghost'}
-            className="w-full justify-start"
+            className="w-full sm:text-xl md:text-xl lg:text-xl xxl:text-lg justify-start"
             onClick={() => onButtonClick('dashboard','dashboard',onTabClick,onItemClick)}
           >
-            <LayoutDashboard className="w-4 h-4 mr-2" />
+            <LayoutDashboard className=" w-4 h-4 mr-2" />
             Dashboard
           </Button>
           
           <Button
             variant={activeItem === 'acerca' ? 'secondary' : 'ghost'}
-            className="w-full justify-start"
+            className="w-full sm:text-xl md:text-xl lg:text-xl xxl:text-lg justify-start"
             onClick={() => onButtonClick('acerca','acerca',onTabClick,onItemClick)}
           >
             <Info className="w-4 h-4 mr-2" />
@@ -51,7 +51,7 @@ export function Sidebar({ activeItem, onItemClick, activeTab, onTabClick }: Side
           </Button>
           <Button
             variant={activeItem === 'Tabla de datos' ? 'secondary' : 'ghost'}
-            className="w-full justify-start"
+            className="w-full sm:text-xl md:text-xl lg:text-xl xxl:text-lg justify-start"
             onClick={() => onButtonClick('Tabla de datos','Tabla de datos',onTabClick,onItemClick)}
           >
             <Database className="w-4 h-4 mr-2" />
@@ -60,7 +60,7 @@ export function Sidebar({ activeItem, onItemClick, activeTab, onTabClick }: Side
 
           <Button
             variant="ghost"
-            className="w-full justify-between"
+            className="w-full  sm:text-xl md:text-xl lg:text-xl xxl:text-lg justify-between"
           >
             <div className="flex items-center">
               <div className="w-4 h-4 mr-2"></div>
