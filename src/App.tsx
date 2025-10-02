@@ -81,7 +81,7 @@ export default function App() {
                 </div>
 
                 <div className="sm:flex sm:flex-col lg:col-span-2 lg:row-span-7 lg:col-start-3 lg:row-start-2 xl:col-span-2 xl:row-span-9 xl:col-start-4 xl:row-start-2">
-                  <CountrySection />
+                  <CountrySection activeAuthors={activeAuthors} rows={rows} />
                 </div>
               </div>
             ) : activeTab === 'Tabla de datos' ? (

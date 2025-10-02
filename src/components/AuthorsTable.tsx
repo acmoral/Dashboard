@@ -3,6 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 interface AuthorsTableProps {
   rows: any[];
   setRows: (rows: any[]) => void;
+  activeAuthors: string[];
 }
 export function AuthorsTable({ rows, setRows, activeAuthors }: AuthorsTableProps) {
   return (
