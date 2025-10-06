@@ -6,6 +6,7 @@ import { Charts } from './components/Charts';
 import { CountrySection } from './components/CountrySection';
 import { AuthorsTable } from './components/AuthorsTable';
 import {fetchDatabase} from "./components/FetchDatabase";
+import { filterTableCountriesByAuthors } from './components/filterTableCountriesByAuthors';
 import { useEffect } from 'react';
 export default function App() {
   const [activeItem, setActiveItem] = useState('dashboard');
@@ -13,6 +14,8 @@ export default function App() {
   const [activeAuthors, setActiveAuthors] = useState([] as string[]);
   const [activeTopics, setActiveTopics] = useState('all');
   const [availableAuthors, setAvailableAuthors] = useState<string[]>([]);
+  const [availableCountries, setAvailableCountries] = useState<{ name: string; code: string; count: number; percentage?: number }[]>([]);
+  const [selectedCountries, setSelectedCountries] = useState<{ name: string; code: string; count: number; percentage?: number }[]>([]);
   const [availableTopics, setAvailableTopics] = useState<string[]>([]);
   const [rows, setRows] = useState([]);
   useEffect(() => {
@@ -27,10 +30,27 @@ export default function App() {
     };
     fetchData();
   }, []);
+  useEffect(() => {
+    console.log('rows updated:');
+  }, [rows]);
+  useEffect(() => {
+    console.log("Available authors updated:");
+  }, [availableAuthors]);
+  useEffect(() => {
+    console.log("Active authors updated:");
+  }, [activeAuthors]);
   const handleItemClick = (item: string) => {
     setActiveItem(item);
   };
-
+  useEffect(() => {
+    
+    const run = async () => {
+    const uniqueCountryCounts = await filterTableCountriesByAuthors(availableCountries, activeAuthors as string[], rows);
+    setAvailableCountries(uniqueCountryCounts);
+    setSelectedCountries(uniqueCountryCounts);
+  };
+  run();
+}, [activeAuthors,rows]);
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
   };
@@ -81,7 +101,7 @@ export default function App() {
                 </div>
 
                 <div className="sm:flex sm:flex-col lg:col-span-2 lg:row-span-7 lg:col-start-3 lg:row-start-2 xl:col-span-2 xl:row-span-9 xl:col-start-4 xl:row-start-2">
-                  <CountrySection activeAuthors={activeAuthors} rows={rows} />
+                  <CountrySection activeAuthors={activeAuthors} rows={rows} availableCountries={availableCountries} selectedCountries={selectedCountries} setSelectedCountries={setSelectedCountries} />
                 </div>
               </div>
             ) : activeTab === 'Tabla de datos' ? (
@@ -91,7 +111,7 @@ export default function App() {
                 </h2>
                
                 <div className="flex-1 overflow-y-auto mt-6">
-                  <AuthorsTable  rows={rows} setRows={setRows} activeAuthors={activeAuthors} />
+                  <AuthorsTable  rows={rows} setRows={setRows} activeAuthors={activeAuthors} selectedCountries={selectedCountries} />
                 </div>
               </div>
             ):

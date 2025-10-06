@@ -4,110 +4,40 @@ import { Button } from "./ui/button";
 import MapComponent  from './mapView';
 import Flag from "react-world-flags";
 import "mapbox-gl/dist/mapbox-gl.css";
-
+import { calculatePercentages } from './calculatePercentages';
+import { countryNameToIso } from './countryToiso';
+import { filterTableCountriesByAuthors } from './filterTableCountriesByAuthors';
 const countries = [
   { name: 'Ecuador', count: 22, flag: '🇪🇨', code: 'ECU' },
   { name: 'España', count: 35, flag: '🇪🇸', code: 'ESP' },
   { name: 'Colombia', count: 34, flag: '🇨🇴', code: 'COL' }
 ];
+type CountryType = {
+  name: string;
+  code: string;
+  count: number;
+  percentage?: number;
+};
 interface CountrySectionProps {
   activeAuthors: Object[];
   rows: any[];
+  availableCountries: CountryType[];
+  selectedCountries: CountryType[];
+  setSelectedCountries: (countries: CountryType[] | ((prev: CountryType[]) => CountryType[])) => void;
 }
-let MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
-export function CountrySection({ activeAuthors, rows }: CountrySectionProps) {
-  async function countryNameToIso(name) {
-    const resp = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(name)}.json?types=country&access_token=${MAPBOX_ACCESS_TOKEN}`);
-    const data = await resp.json();
-    if (data.features && data.features.length > 0) {
-      const feat = data.features[0];
-      // sometimes in feat.properties or feat.context you’ll find iso codes
-      // or feat.properties.iso_3166_1, etc.
-      return feat.properties.short_code.toUpperCase() || null;
-    }
-    return null;
-  }
-
+export function CountrySection({ activeAuthors, rows, availableCountries, selectedCountries, setSelectedCountries}: CountrySectionProps) {
   useEffect(() => {
-    const run = async () => {
-    // count countries
-    const countryCounts: { name: string; code: string; count: number; percentage?: number }[] = [];
-    rows.forEach((row: any) => {
-      if (
-        activeAuthors.length === 0 ||
-        activeAuthors.includes(row.inv_cor) ||
-        activeAuthors.some(author => row.inv_nam.split(";").includes(author))
-      ) {
-        const countries = row.inv_con.split(";").map((c: string) => c.trim());
-        countries.forEach((country: string) => {
-          const existing = countryCounts.find(c => c.name === country);
-          if (existing) {
-            existing.count += 1;
-          } else {
-            countryCounts.push({ name: country, code: '', count: 1 });
-          }
-        });
-      }
-    });
-
-    // percentages
-    const total = countryCounts.reduce((acc, curr) => acc + curr.count, 0);
-    countryCounts.forEach(c => {
-      const percentage = c.count / total;
-      c.percentage = Math.round(percentage * 1000) / 1000;
-    });
-
-    // ISO codes in parallel
-    const codes = await Promise.all(
-      countryCounts.map(c => countryNameToIso(c.name))
-    );
-
-    countryCounts.forEach((c, i) => {
-      c.code = codes[i] || '';
-    });
-    // Join the country counts with same codes
-    const mergedCounts: { [key: string]: { name: string; code: string; count: number; percentage?: number } } = {};
-    countryCounts.forEach(c => {
-      if (c.code) {
-        if (mergedCounts[c.code]) {
-          mergedCounts[c.code].count += c.count;
-        } else {
-          mergedCounts[c.code] = { ...c };
-        }
-      }
-    });
-    const uniqueCountryCounts = Object.values(mergedCounts);
-
-    // ✅ Now update state after async work is done
-    setSelectedCountries(uniqueCountryCounts);
-    console.log("Country counts:", uniqueCountryCounts);
-  };
-
-  run();
-}, [activeAuthors, rows]);
-
-  const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
-  const [selectedCountries, setSelectedCountries] = useState<{ name: string; code: string; count: number; percentage?: number }[]>([]);
+    console.log("active authors changed");
+  }, [activeAuthors]);
   useEffect(() => {
-  console.log("Selected countries updated:", selectedCountries);
-}, [selectedCountries]);
-  const toggleCountry = (countryCode: string) => {
-    setSelectedCountries(prev => 
-      prev.find(c => c.code === countryCode) 
-        ? prev.filter(c => c.code !== countryCode)
-        : [...prev, { name: countryCode, code: countryCode, count: 0 }]
-    );
+    console.log("rows changed");
+  }, [rows]);
+  useEffect(() => {
+  console.log("Available countries updated:", availableCountries);
+}, [availableCountries]);
+  const toggleCountry = (code: string) => {
+    console.log("Toggling country:", code);
   };
-  const toggleCountryByName = async (countryName: string) => {
-    const countryCode = await countryNameToIso(countryName);
-    if (!countryCode) return;
-    setSelectedCountries(prev => 
-      prev.find(c => c.code === countryCode) 
-        ? prev.filter(c => c.code !== countryCode)
-        : [...prev, { name: countryName, code: countryCode, count: 0 }  ]
-    );
-  };
-
   return (
     <div className="sm:flex sm:flex-col sm:h-full lg:grid lg:grid-rows-4 lg:grid-cols-1 lg:h-full xl:grid xl:grid-cols-1 gap-6">
       {/* Map Section */}
@@ -115,19 +45,12 @@ export function CountrySection({ activeAuthors, rows }: CountrySectionProps) {
         <h3 className=" sm:text-xl md:text-xl lg:text-xl font-medium mb-4">Países seleccionados</h3>
         
         {/* Filter buttons */}
-        <div className="flex sm:text-xl md:text-xl lg:text-xl gap-2 mb-4">
-          <Button variant="selected" size="sm" className=" sm:text-xl md:text-xl lg:text-xl">
-            Seleccionado
-          </Button>
-          <Button variant="ghost" size="sm" className=" sm:text-xl md:text-xl lg:text-xl">
-            Inactivo
-          </Button>
-        </div>
+       {/*  <div className="flex sm:text-xl md:text-xl lg:text-xl gap-2 mb-4"> <Button variant="selected" size="sm" className=" sm:text-xl md:text-xl lg:text-xl"> Seleccionado </Button> <Button variant="ghost" size="sm" className=" sm:text-xl md:text-xl lg:text-xl"> Inactivo </Button> </div> */}
 
         {/* Simple map representation */}
           {/* Replace with actual map component */}
           <div className="sm:h-128 md:h-128 lg:h-full xl:h-full rounded-md overflow-hidden">
-          <MapComponent selectedCountries={selectedCountries} />
+          <MapComponent selectedCountries={selectedCountries} setSelectedCountries={setSelectedCountries} availableCountries={availableCountries} />
           <div style={{ position: 'absolute', bottom: 10, left: 10, backgroundColor: 'white', padding: '10px', borderRadius: '8px', fontSize: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <span style={{ marginRight: '8px' }}>Low</span>

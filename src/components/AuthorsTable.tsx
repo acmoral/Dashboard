@@ -4,8 +4,9 @@ interface AuthorsTableProps {
   rows: any[];
   setRows: (rows: any[]) => void;
   activeAuthors: string[];
+  selectedCountries?: { name: string; code: string; count: number; percentage?: number }[];
 }
-export function AuthorsTable({ rows, setRows, activeAuthors }: AuthorsTableProps) {
+export function AuthorsTable({ rows, setRows, activeAuthors, selectedCountries }: AuthorsTableProps) {
   return (
     <div className="p-4">
       <h3 className="sm:text-lg md:text-lg lg:text-lg xxl:text-lg  font-medium mb-4">Datos crudos</h3>
@@ -20,6 +21,11 @@ export function AuthorsTable({ rows, setRows, activeAuthors }: AuthorsTableProps
         <TableBody>
           {rows.map((row: any, index: number) => {
             if (activeAuthors.length === 0 || activeAuthors.includes(row.inv_cor) || activeAuthors.some(author => row.inv_nam.split(";").includes(author))) {
+              if (selectedCountries && selectedCountries.length > 0) {
+                const countryNames = selectedCountries.map(c => c.name);
+                if (!countryNames.some(cn => row.inv_con.split(";").includes(cn))) {
+                  return null; // Skip this row if its country is not in selectedCountries
+                }
               return (
                 <TableRow key={index}>
                   {Object.entries(row).map(([key, value]) => (
@@ -27,6 +33,9 @@ export function AuthorsTable({ rows, setRows, activeAuthors }: AuthorsTableProps
                   ))}
                 </TableRow>
               );
+              } else {
+                return null; // Skip rendering if no countries are selected
+              } 
             }
             return null;
           })}
