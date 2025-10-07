@@ -14,20 +14,6 @@ const pathologyData = [
   { name: 'Otro', value: 4, percentage: 10, color: 'var(--chart-7)' }
 ];
 
-const timelineData = [
-  { year: '2005', value: 20 },
-  { year: '2006', value: 35 },
-  { year: '2007', value: 45 },
-  { year: '2008', value: 30 },
-  { year: '2009', value: 50 },
-  { year: '2010', value: 40 },
-  { year: '2011', value: 60 },
-  { year: '2013', value: 55 },
-  { year: '2014', value: 70 },
-  { year: '2015', value: 45 },
-  { year: '2016', value: 35 },
-  { year: '2017', value: 65 }
-];
 
 function DonutChart({ data, title, centerText,className }: { data: any[], title: string, centerText?: string, className?: string }) {
   return (
@@ -136,13 +122,13 @@ function PathologyChart({className}: {className?: string}) {
   );
 } */
 
-export function Charts() {
+export function Charts({ tipoAtencion }: { tipoAtencion: { name: string; value: number; color: string }[] }) {
   return (
     <div className="h-full md:grid md:grid-cols-2 md:grid-rows-2 md:gap-4 md:auto-rows-fr sm:flex sm:flex-col sm:gap-4 p-4">
-      <DonutChart 
-        data={accessTypeData} 
-        title="Tipo de acceso" 
-        centerText="67%"
+      <DonutChart
+        data={tipoAtencion}
+        title="Tipo de atención"
+        /* centerText="296" */
         className="col-span-1 row-span-1 "
       />
       <DonutChart 

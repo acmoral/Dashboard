@@ -7,6 +7,8 @@ import { CountrySection } from './components/CountrySection';
 import { AuthorsTable } from './components/AuthorsTable';
 import {fetchDatabase} from "./components/FetchDatabase";
 import { filterTableCountriesByAuthors } from './components/filterTableCountriesByAuthors';
+import { filterTableTipoAtencion } from './components/filterTableTipoAtencion';
+import { AcercaDe } from './components/AcercaDe';
 import { useEffect } from 'react';
 export default function App() {
   const [activeItem, setActiveItem] = useState('dashboard');
@@ -17,6 +19,7 @@ export default function App() {
   const [availableCountries, setAvailableCountries] = useState<{ name: string; code: string; count: number; percentage?: number }[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<{ name: string; code: string; count: number; percentage?: number }[]>([]);
   const [availableTopics, setAvailableTopics] = useState<string[]>([]);
+  const [tipoAtencion, setTipoAtencion] = useState<{ name: string; value: number; color: string }[]>([]);
   const [rows, setRows] = useState([]);
   useEffect(() => {
     const fetchData = async () => {
@@ -26,19 +29,10 @@ export default function App() {
       const topics = Array.from(new Set(data.map((item: any) => item.Topic).filter(Boolean)));
       setAvailableAuthors(authors);
       setAvailableTopics(topics);
-      console.log("Fetched authors:", authors);
     };
     fetchData();
   }, []);
-  useEffect(() => {
-    console.log('rows updated:');
-  }, [rows]);
-  useEffect(() => {
-    console.log("Available authors updated:");
-  }, [availableAuthors]);
-  useEffect(() => {
-    console.log("Active authors updated:");
-  }, [activeAuthors]);
+
   const handleItemClick = (item: string) => {
     setActiveItem(item);
   };
@@ -51,6 +45,16 @@ export default function App() {
   };
   run();
 }, [activeAuthors,rows]);
+useEffect(() => {
+  const run = async () => {
+    const tipoAtencionData = await filterTableTipoAtencion(rows, activeAuthors as string[], selectedCountries.map(c => c.name));
+    setTipoAtencion(tipoAtencionData);
+  };
+  run();
+}, [rows, selectedCountries]);
+useEffect(() => {
+  console.log("Tipo de atención data:", tipoAtencion);
+}, [tipoAtencion]);
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
   };
@@ -78,14 +82,12 @@ export default function App() {
   return (
     <div className="flex h-svh">
       {/* Sidebar */}
-      <Sidebar activeItem={activeItem} activeTab={activeTab} onItemClick={handleItemClick} onTabClick={handleTabChange} />
+      <Sidebar activeItem={activeItem} activeTab={activeTab} activeAuthors={activeAuthors} availableAuthors={availableAuthors} availableTopics={availableTopics} onAuthorFilterChange={handleAuthorFilterChange} onTopicFilterChange={handleTopicFilterChange} onItemClick={handleItemClick} onTabClick={handleTabChange} />
 
       {/* Main Content */}
       <div className="h-full w-full grid grid-rows-[30%_70%]">
         {/* Header */}
-        <div className="overflow-hidden">
-        <DashboardHeader availableAuthors={availableAuthors} availableTopics={availableTopics} activeAuthors={activeAuthors} activeTopics={activeTopics} onAuthorFilterChange={handleAuthorFilterChange} onTopicFilterChange={handleTopicFilterChange} />
-        </div>
+        
         {/* Content */}
         <div className=" overflow-hidden">
           <div className="w-full h-full">
@@ -97,7 +99,7 @@ export default function App() {
                 </div>
 
                 <div className="sm:flex-1 md:row-span-9 md:row-start-2 lg:col-start-1 lg:col-span-3 xl:col-start-1 xl:col-span-3">
-                  <Charts />
+                  <Charts tipoAtencion={tipoAtencion} />
                 </div>
 
                 <div className="sm:flex sm:flex-col lg:col-span-2 lg:row-span-7 lg:col-start-3 lg:row-start-2 xl:col-span-2 xl:row-span-9 xl:col-start-4 xl:row-start-2">
@@ -116,15 +118,8 @@ export default function App() {
               </div>
             ):
             activeTab === 'acerca' ? (
-              <div className="text-center py-12">
-                <h2 className="text-xl font-semibold text-muted-foreground">
-                  Acerca de
-                </h2>
-                <p className="mt-4 text-sm text-muted-foreground max-w-md mx-auto">
-                  Esta aplicación ha sido desarrollada por el Centro de Pensamiento Medicamentos, Información y Poder (CEMIP) de la Universidad Nacional de Colombia (UNAL).
-                </p>
-              </div>
-            ) : null  
+              <AcercaDe />
+            ) : null
             }
           </div>
         </div>

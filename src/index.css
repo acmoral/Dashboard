@@ -1162,7 +1162,12 @@
   .w-40 {
     width: calc(var(--spacing) * 40);
   }
-
+  .w-50{
+    width: calc(var(--spacing) * 50);
+  }
+  .w-60{
+    width: calc(var(--spacing) * 60);
+  }
   .w-64 {
     width: calc(var(--spacing) * 64);
   }
@@ -1480,7 +1485,9 @@
   .flex-wrap {
     flex-wrap: wrap;
   }
-
+  .min-h-screen{
+    min-height: 100vh;
+  }
   .items-baseline {
     align-items: baseline;
   }
@@ -1504,7 +1511,9 @@
   .justify-between {
     justify-content: space-between;
   }
-
+  .justify-around{
+    justify-content: space-around;
+  }
   .justify-center {
     justify-content: center;
   }
@@ -1962,7 +1971,9 @@
   .px-6 {
     padding-inline: calc(var(--spacing) * 6);
   }
-
+  .px-12 {
+    padding-inline: calc(var(--spacing) * 12);
+  }
   .py-0\.5 {
     padding-block: calc(var(--spacing) * .5);
   }
@@ -2075,7 +2086,10 @@
     font-size: var(--text-2xl);
     line-height: var(--tw-leading, var(--text-2xl--line-height));
   }
-
+  .text-3xl{
+    font-size: var(--text-3xl);
+    line-height: var(--tw-leading, var(--text-3xl--line-height));
+  }
   .text-base {
     font-size: var(--text-base);
     line-height: var(--tw-leading, var(--text-base--line-height));
@@ -5536,12 +5550,26 @@
   --ring: #00a8e8;              /* picton-blue highlight */
 
   /* Charts (spread across palette) */
-  --chart-1: #00171f;   /* rich-black */
-  --chart-2: #003459;   /* prussian-blue */
-  --chart-3: #007ea7;   /* cerulean */
-  --chart-4: #00a8e8;   /* picton-blue */
-  --chart-5: #ffffff;   /* white */
-
+  --chart-1: #9be3ff;           /* light picton-blue */
+  --chart-2: #005f73;           /* dark cyan */
+  --chart-3: #94d2bd;           /* light sea-green */
+  --chart-4: #0a9396;           /* persian-green */
+  --chart-5: #ee9b00;           /* orange-yellow */ 
+  --chart-6: #ca6702;           /* dark orange */
+  --chart-7: #bb3e03;           /* pumpkin */
+  --chart-8: #ae2012;           /* red salsa */
+  --chart-9: #9b2226;           /* dark scarlet */
+  --chart-10: #6a4c93;          /* purple mountain majesty */
+  --chart-11: #b5838d;          /* rosy brown */
+  --chart-12: #e5989b;          /* light coral */
+  --chart-13: #ffb4a2;          /* light salmon */
+  --chart-14: #ffcdb2;          /* peach puff */
+  --chart-15: #f0efeb;          /* off white */
+  --chart-16: #d8e2dc;          /* light gray */
+  --chart-17: #ece4db;          /* bone */
+  --chart-18: #ffe5d9;          /* very light peach */
+  --chart-19: #ffcad4;          /* light pink */
+  --chart-20: #f4acb7;          /* pink sherbert */
   /* Typography */
   --font-weight-medium: 500;
   --font-weight-normal: 400;
@@ -5977,3 +6005,17 @@ html {
 }
 
 
+/* Hide the native date picker icon */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+}
+
+input[type="date"]::-webkit-inner-spin-button,
+input[type="date"]::-webkit-clear-button {
+  display: none;
+}
+
+input[type="date"]::-ms-expand {
+  display: none;
+}
