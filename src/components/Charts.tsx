@@ -17,8 +17,8 @@ const pathologyData = [
 
 function DonutChart({ data, title, centerText,className }: { data: any[], title: string, centerText?: string, className?: string }) {
   return (
-    <Card className={`p-3 xxl:p-6 ${className}`}>
-      <h3 className="sm:text-xl md:text-xl lg:text-xl xxl:text-2xl font-medium mb-3">{title}</h3>
+    <Card className={`p-3 ${className}`}>
+      <h3 className="text-base font-medium mb-3">{title}</h3>
       <div className="relative h-48">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -39,21 +39,21 @@ function DonutChart({ data, title, centerText,className }: { data: any[], title:
         </ResponsiveContainer>
         {centerText && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="sm:text-2xl font-semibold">{centerText}</span>
+            <span className="text-xl font-semibold">{centerText}</span>
           </div>
         )}
       </div>
       <div className="mt-4 space-y-2 overflow-y-auto max-h-32">
         {data.map((item, index) => (
-          <div key={index} className="flex items-center justify-between sm:text-md md:text-2xl lg:text-xl">
+          <div key={index} className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
               <div 
                 className="w-3 h-3 rounded-full" 
                 style={{ backgroundColor: item.color }}
               ></div>
-              <span>{item.name}</span>
+              <span className="text-sm">{item.name}</span>
             </div>
-            <span className="text-muted-foreground">{item.value}</span>
+            <span className="text-sm font-medium text-muted-foreground">{item.value}</span>
           </div>
         ))}
       </div>
@@ -64,7 +64,7 @@ function DonutChart({ data, title, centerText,className }: { data: any[], title:
 function PathologyChart({className}: {className?: string}) {
   return (
     <Card className={`p-4 ${className}`}>
-      <h3 className="sm:text-xl md:text-xl font-medium mb-4">Patologías principales</h3>
+      <h3 className="text-base font-medium mb-4">Patologías principales</h3>
       <div className="relative h-48">
         <ResponsiveContainer width="90%" height="90%">
           <PieChart>
@@ -86,7 +86,7 @@ function PathologyChart({className}: {className?: string}) {
       </div>
       <div className="mt-4 space-y-2 overflow-y-auto max-h-32">
         {pathologyData.map((item, index) => (
-          <div key={index} className="flex items-center justify-between sm:text-md md:text-xl">
+          <div key={index} className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
               <div 
                 className="w-3 h-3 rounded-full" 
@@ -95,8 +95,8 @@ function PathologyChart({className}: {className?: string}) {
               <span>{item.name}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span>{item.value}</span>
-              <span className="sm:text-md md:text-md bg-muted px-2 py-1 rounded">{item.percentage}%</span>
+              <span className="text-sm font-medium">{item.value}</span>
+              <span className="text-sm bg-muted px-2 py-1 rounded">{item.percentage}%</span>
             </div>
           </div>
         ))}
@@ -124,12 +124,12 @@ function PathologyChart({className}: {className?: string}) {
 
 export function Charts({ tipoAtencion }: { tipoAtencion: { name: string; value: number; color: string }[] }) {
   return (
-    <div className="h-full md:grid md:grid-cols-2 md:grid-rows-2 md:gap-4 md:auto-rows-fr sm:flex sm:flex-col sm:gap-4 p-4">
+    <div className="h-full md:grid md:grid-cols-2 md:grid-rows-2 md:gap-4 md:auto-rows-fr sm:flex sm:flex-col sm:gap-4 ">
       <DonutChart
         data={tipoAtencion}
         title="Tipo de atención"
         /* centerText="296" */
-        className="col-span-1 row-span-1 "
+        className="col-span-1 row-span-1"
       />
       <DonutChart 
         data={accessTypeData} 

@@ -85,14 +85,14 @@ useEffect(() => {
       <Sidebar activeItem={activeItem} activeTab={activeTab} activeAuthors={activeAuthors} availableAuthors={availableAuthors} availableTopics={availableTopics} onAuthorFilterChange={handleAuthorFilterChange} onTopicFilterChange={handleTopicFilterChange} onItemClick={handleItemClick} onTabClick={handleTabChange} />
 
       {/* Main Content */}
-      <div className="h-full w-full grid grid-rows-[30%_70%]">
+      <div className="sm:bg-red h-full w-full grid grid-rows-[30%_70%]">
         {/* Header */}
         
         {/* Content */}
         <div className=" overflow-hidden">
           <div className="w-full h-full">
             {activeTab === 'dashboard' ? (
-              <div className="h-full  sm:flex sm:gap-4 sm:overflow-y:auto sm:flex-col md:overflow-y:auto lg:grid lg:grid-cols-5 lg:grid-rows-7 xl:grid xl:grid-cols-5 xl:grid-rows-7  gap-4 p-4">
+              <div className="h-full  sm:flex sm:gap-4 sm:overflow-y:auto sm:flex-col md:overflow-y:auto md:grid md:gap-4 lg:grid lg:grid-cols-5 lg:grid-rows-7 xl:grid xl:grid-cols-5 xl:grid-rows-7  gap-4 p-3">
                 {/* Statistics Cards */}
                 <div className="sm:flex sm:justify-center lg:col-span-5 xl:col-span-5  w-full ">
                   <StatsCards />
@@ -108,7 +108,7 @@ useEffect(() => {
               </div>
             ) : activeTab === 'Tabla de datos' ? (
               <div className="p-6 h-full flex flex-col overflow-y-auto text-center py-12">
-                <h2 className="sm:text-xl md:text-xl lg:text-xl xxl:text-3xl flex justify-center font-semibold text-muted-foreground">
+                <h2 className="sm:text-lg md:text-xl lg:text-xl xxl:text-3xl flex justify-center font-semibold text-muted-foreground">
                   Tabla de datos
                 </h2>
                
