@@ -8,6 +8,9 @@ import { AuthorsTable } from './components/AuthorsTable';
 import {fetchDatabase} from "./components/FetchDatabase";
 import { filterTableCountriesByAuthors } from './components/filterTableCountriesByAuthors';
 import { filterTableTipoAtencion } from './components/filterTableTipoAtencion';
+import { filterTableTipoDom } from './components/filterTableDominioPregunta';
+import { filterTableDesign } from './components/filterTableDesign';
+import { filterTableTipoDisease } from './components/filterTableDisease';
 import { AcercaDe } from './components/AcercaDe';
 import { useEffect } from 'react';
 export default function App() {
@@ -20,6 +23,9 @@ export default function App() {
   const [selectedCountries, setSelectedCountries] = useState<{ name: string; code: string; count: number; percentage?: number }[]>([]);
   const [availableTopics, setAvailableTopics] = useState<string[]>([]);
   const [tipoAtencion, setTipoAtencion] = useState<{ name: string; value: number; color: string }[]>([]);
+  const [tipoDominio, setTipoDominio] = useState<{ name: string; value: number; color: string }[]>([]);
+  const [tipoDesign, setTipoDesign] = useState<{ name: string; value: number; color: string }[]>([]);
+  const [tipoDisease, setTipoDisease] = useState<{ name: string; value: number; color: string }[]>([]);
   const [rows, setRows] = useState([]);
   useEffect(() => {
     const fetchData = async () => {
@@ -48,7 +54,14 @@ export default function App() {
 useEffect(() => {
   const run = async () => {
     const tipoAtencionData = await filterTableTipoAtencion(rows, activeAuthors as string[], selectedCountries.map(c => c.name));
+    const tipoDominioData = await filterTableTipoDom(rows, activeAuthors as string[], selectedCountries.map(c => c.name));
+    const tipoDesignData = await filterTableDesign(rows, activeAuthors as string[], selectedCountries.map(c => c.name));
+    const tipoDiseaseData = await filterTableTipoDisease(rows, activeAuthors as string[], selectedCountries.map(c => c.name));
+
+    setTipoDisease(tipoDiseaseData);
+    setTipoDominio(tipoDominioData);
     setTipoAtencion(tipoAtencionData);
+    setTipoDesign(tipoDesignData);
   };
   run();
 }, [rows, selectedCountries]);
@@ -99,7 +112,7 @@ useEffect(() => {
                 </div>
 
                 <div className="sm:flex-1 md:row-span-9 md:row-start-2 lg:col-start-1 lg:col-span-3 xl:col-start-1 xl:col-span-3">
-                  <Charts tipoAtencion={tipoAtencion} />
+                  <Charts tipoAtencion={tipoAtencion} tipoDominio={tipoDominio} tipoDesign={tipoDesign} tipoDisease={tipoDisease} />
                 </div>
 
                 <div className="sm:flex sm:flex-col lg:col-span-2 lg:row-span-7 lg:col-start-3 lg:row-start-2 xl:col-span-2 xl:row-span-9 xl:col-start-4 xl:row-start-2">

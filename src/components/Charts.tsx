@@ -61,49 +61,6 @@ function DonutChart({ data, title, centerText,className }: { data: any[], title:
   );
 }
 
-function PathologyChart({className}: {className?: string}) {
-  return (
-    <Card className={`p-4 ${className}`}>
-      <h3 className="text-base font-medium mb-4">Patologías principales</h3>
-      <div className="relative h-48">
-        <ResponsiveContainer width="90%" height="90%">
-          <PieChart>
-            <Pie
-              data={pathologyData}
-              cx="50%"
-              cy="50%"
-              innerRadius={"40%"}
-              outerRadius={"100%"}
-              paddingAngle={2}
-              dataKey="value"
-            >
-              {pathologyData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
-      <div className="mt-4 space-y-2 overflow-y-auto max-h-32">
-        {pathologyData.map((item, index) => (
-          <div key={index} className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2">
-              <div 
-                className="w-3 h-3 rounded-full" 
-                style={{ backgroundColor: item.color }}
-              ></div>
-              <span>{item.name}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">{item.value}</span>
-              <span className="text-sm bg-muted px-2 py-1 rounded">{item.percentage}%</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </Card>
-  );
-}
 /* function TimelineChart() {
   return (
     <Card className="p-4">
@@ -122,7 +79,7 @@ function PathologyChart({className}: {className?: string}) {
   );
 } */
 
-export function Charts({ tipoAtencion }: { tipoAtencion: { name: string; value: number; color: string }[] }) {
+export function Charts({ tipoAtencion, tipoDominio, tipoDesign, tipoDisease }: { tipoAtencion: { name: string; value: number; color: string }[]; tipoDominio: { name: string; value: number; color: string }[]; tipoDesign: { name: string; value: number; color: string }[]; tipoDisease: { name: string; value: number; color: string }[] }) {
   return (
     <div className="h-full md:grid md:grid-cols-2 md:grid-rows-2 md:gap-4 md:auto-rows-fr sm:flex sm:flex-col sm:gap-4 ">
       <DonutChart
@@ -132,18 +89,20 @@ export function Charts({ tipoAtencion }: { tipoAtencion: { name: string; value: 
         className="col-span-1 row-span-1"
       />
       <DonutChart 
-        data={accessTypeData} 
-        title="Tipo de acceso"
+        data={tipoDominio}
+        title="Tipo de dominio de pregunta"
         className="col-span-1 row-span-1 col-start-2 row-start-1"
       />
       <DonutChart 
-        data={accessTypeData} 
-        title="Tipo de acceso"
+        data={tipoDesign}
+        title="Tipo de diseño de estudio"
         className="col-span-1 row-span-1 row-start-2 col-start-2"
       />
-      <PathologyChart className="col-span-1 row-span-1 row-start-2 col-start-1" />
-      <div className="xl:col-span-2">
-      </div>
+      <DonutChart 
+        data={tipoDisease}
+        title="Tipo de enfermedad"
+        className="col-span-1 row-span-1 row-start-2 col-start-1"
+      />
     </div>
   );
 }

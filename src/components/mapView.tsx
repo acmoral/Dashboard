@@ -47,7 +47,7 @@ export default function MapComponent({
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: "mapbox://styles/mapbox/light-v11",
-      center: [0, 20],
+      center: [-74.297333, 4.570868],
       projection: "mercator",
       zoom: 2,
     });
