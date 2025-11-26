@@ -2,14 +2,10 @@ function getADifferentColor(i: number){
     const name = `var(--chart-${i % 20})`;
     return name;
 }
-export async function filterTableTipoDisease(rows: [], activeAuthors: string[], activeCountries: string[]): Promise<{ name: string; value: number; color: string }[]> {
-  const filteredData = rows.filter(item => {
-    const isAuthorActive = activeAuthors.length === 0 || activeAuthors.includes(item.inv_cor) || activeAuthors.some(author => item.inv_nam.split(";").includes(author));
-    const isCountryActive = activeCountries.length === 0 || activeCountries.some(c => item.inv_con.split(";").includes(c));
-    return isAuthorActive && isCountryActive;
-  });
+export async function filterTableTipoDisease({filteredRows}: {filteredRows: any[]}): Promise<{ name: string; value: number; color: string }[]> {
+
   let i = 1;
-  const tipoDiseaseCounts = filteredData.reduce((acc, item) => {
+  const tipoDiseaseCounts = filteredRows.reduce((acc, item) => {
     const tipoDisease = item.dise || 'Desconocido';
     const SpreadtipoDisease = tipoDisease.split(";").map((t: string) => t.trim());
     for (const tipo of SpreadtipoDisease) {

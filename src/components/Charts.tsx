@@ -20,6 +20,11 @@ function DonutChart({ data, title, centerText,className }: { data: any[], title:
     <Card className={`p-3 ${className}`}>
       <h3 className="text-base font-medium mb-3">{title}</h3>
       <div className="relative h-48">
+              {data.length === 0 ? (
+        <div className="flex items-center justify-center h-48">
+          <span className="text-sm text-muted-foreground">No hay datos con este filtro</span>
+        </div>
+      ) : null}
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie

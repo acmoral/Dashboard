@@ -1,73 +1,108 @@
 import { useState } from 'react';
 import { Sidebar } from './components/Sidebar';
-import { DashboardHeader } from './components/DashboardHeader';
 import { StatsCards } from './components/StatsCards';
 import { Charts } from './components/Charts';
 import { CountrySection } from './components/CountrySection';
 import { AuthorsTable } from './components/AuthorsTable';
 import {fetchDatabase} from "./components/FetchDatabase";
-import { filterTableCountriesByAuthors } from './components/filterTableCountriesByAuthors';
 import { filterTableTipoAtencion } from './components/filterTableTipoAtencion';
 import { filterTableTipoDom } from './components/filterTableDominioPregunta';
 import { filterTableDesign } from './components/filterTableDesign';
 import { filterTableTipoDisease } from './components/filterTableDisease';
 import { AcercaDe } from './components/AcercaDe';
+import { countryNameToIso } from "./components/countryToiso";
+import { filterRowsByCountry } from './components/filterRowsByCountry';
+import { filterRowsByAuthor } from './components/filterRowsByAuthor';
 import { useEffect } from 'react';
 export default function App() {
   const [activeItem, setActiveItem] = useState('dashboard');
   const [activeTab, setActiveTab] = useState('dashboard');
   const [activeAuthors, setActiveAuthors] = useState([] as string[]);
-  const [activeTopics, setActiveTopics] = useState('all');
+  const [activeDates, setActiveDates] = useState<{ startDate: string; endDate: string }>({ startDate: '', endDate: '' });
   const [availableAuthors, setAvailableAuthors] = useState<string[]>([]);
-  const [availableCountries, setAvailableCountries] = useState<{ name: string; code: string; count: number; percentage?: number }[]>([]);
-  const [selectedCountries, setSelectedCountries] = useState<{ name: string; code: string; count: number; percentage?: number }[]>([]);
-  const [availableTopics, setAvailableTopics] = useState<string[]>([]);
+  const [availableCountries, setAvailableCountries] = useState<string[]>([]);
   const [tipoAtencion, setTipoAtencion] = useState<{ name: string; value: number; color: string }[]>([]);
   const [tipoDominio, setTipoDominio] = useState<{ name: string; value: number; color: string }[]>([]);
   const [tipoDesign, setTipoDesign] = useState<{ name: string; value: number; color: string }[]>([]);
   const [tipoDisease, setTipoDisease] = useState<{ name: string; value: number; color: string }[]>([]);
   const [rows, setRows] = useState([]);
+  const [filterCountries, setFilterCountries] = useState<string[]>([]);
+  const [filteredRows, setFilteredRows] = useState([]);
+
+  // ----------------------------------
+  // Fetch initial data
+  // ----------------------------------
+
   useEffect(() => {
     const fetchData = async () => {
       const data = await fetchDatabase();
       setRows(data);
+      setFilteredRows(data);
+      const countries = Array.from(new Set(data.map((item: any) => item.inv_con).flatMap((c: string) => c.split(";")).map((c: string) => c.trim()).filter(Boolean)));
+      const countriesISOS = await Promise.all(
+        countries.map((country) => countryNameToIso(country))
+      );
+      const uniqueCountriesISOS = Array.from(new Set(countriesISOS.filter(code => code)));
       const authors = Array.from(new Set(data.map((item: any) => item.inv_cor).filter(Boolean)));
-      const topics = Array.from(new Set(data.map((item: any) => item.Topic).filter(Boolean)));
       setAvailableAuthors(authors);
-      setAvailableTopics(topics);
+      setAvailableCountries(uniqueCountriesISOS);
     };
     fetchData();
   }, []);
+  //----------------------------------
+  // Handlers
+  //----------------------------------
+  useEffect(() => {
+    const run = async () => {
+      const filtered = await filterRowsByCountry(filterCountries, rows);
+      const finalFiltered = await filterRowsByAuthor(activeAuthors, filtered);
+      const authors = Array.from(new Set(filtered.map((item: any) => item.inv_cor).filter(Boolean)));
+      setAvailableAuthors(authors);
+      setFilteredRows(finalFiltered);
+    };
+    run();
+  }, [filterCountries, rows]);
+
+  useEffect(() => {
+    const run = async () => {
+      const filtered = filterRowsByAuthor(activeAuthors, rows);
+      const finalFiltered = await filterRowsByCountry(filterCountries, filtered);
+      const countries = Array.from(new Set(filtered.map((item: any) => item.inv_con).flatMap((c: string) => c.split(";")).map((c: string) => c.trim()).filter(Boolean)));
+      const countriesISOS = await Promise.all(
+        countries.map((country) => countryNameToIso(country))
+      );
+      const uniqueCountriesISOS = Array.from(new Set(countriesISOS.filter(code => code)));
+      setAvailableCountries(uniqueCountriesISOS);
+      setFilteredRows(finalFiltered);
+    };
+    run();
+  }, [activeAuthors,rows]);
 
   const handleItemClick = (item: string) => {
     setActiveItem(item);
   };
   useEffect(() => {
-    
+    console.log("Active countries changed:", filterCountries);
+  }, [filterCountries]);
+  useEffect(() => {
+    console.log("Active authors changed:", activeAuthors);
+  }, [activeAuthors]);
+  useEffect(() => {
+    console.log("Filtered rows changed:", filteredRows);
+  }, [filteredRows]);
+  useEffect(() => {
     const run = async () => {
-    const uniqueCountryCounts = await filterTableCountriesByAuthors(availableCountries, activeAuthors as string[], rows);
-    setAvailableCountries(uniqueCountryCounts);
-    setSelectedCountries(uniqueCountryCounts);
-  };
-  run();
-}, [activeAuthors,rows]);
-useEffect(() => {
-  const run = async () => {
-    const tipoAtencionData = await filterTableTipoAtencion(rows, activeAuthors as string[], selectedCountries.map(c => c.name));
-    const tipoDominioData = await filterTableTipoDom(rows, activeAuthors as string[], selectedCountries.map(c => c.name));
-    const tipoDesignData = await filterTableDesign(rows, activeAuthors as string[], selectedCountries.map(c => c.name));
-    const tipoDiseaseData = await filterTableTipoDisease(rows, activeAuthors as string[], selectedCountries.map(c => c.name));
-
-    setTipoDisease(tipoDiseaseData);
-    setTipoDominio(tipoDominioData);
-    setTipoAtencion(tipoAtencionData);
-    setTipoDesign(tipoDesignData);
-  };
-  run();
-}, [rows, selectedCountries]);
-useEffect(() => {
-  console.log("Tipo de atención data:", tipoAtencion);
-}, [tipoAtencion]);
+      const tipoAtencionData = await filterTableTipoAtencion({filteredRows});
+      const tipoDominioData = await filterTableTipoDom({filteredRows});
+      const tipoDesignData = await filterTableDesign({filteredRows});
+      const tipoDiseaseData = await filterTableTipoDisease({filteredRows});
+      setTipoDisease(tipoDiseaseData);
+      setTipoDominio(tipoDominioData);
+      setTipoAtencion(tipoAtencionData);
+      setTipoDesign(tipoDesignData);
+    };
+    run();
+  }, [filteredRows]);
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
   };
@@ -89,13 +124,14 @@ useEffect(() => {
     }
     }
   };
-  const handleTopicFilterChange = (filter: string) => {
-    setActiveTopics(filter);
-  };  
+  const handleDateFilterChange = (startDate: string, endDate: string) => {
+    setActiveDates({ startDate, endDate });
+    console.log("Date filter changed in App:", startDate, endDate); 
+  };
   return (
     <div className="flex h-svh">
       {/* Sidebar */}
-      <Sidebar activeItem={activeItem} activeTab={activeTab} activeAuthors={activeAuthors} availableAuthors={availableAuthors} availableTopics={availableTopics} onAuthorFilterChange={handleAuthorFilterChange} onTopicFilterChange={handleTopicFilterChange} onItemClick={handleItemClick} onTabClick={handleTabChange} />
+      <Sidebar activeItem={activeItem} activeTab={activeTab} activeAuthors={activeAuthors} availableAuthors={availableAuthors}  onDateFilterChange={handleDateFilterChange} onAuthorFilterChange={handleAuthorFilterChange} onItemClick={handleItemClick} onTabClick={handleTabChange} />
 
       {/* Main Content */}
       <div className="sm:bg-red h-full w-full grid grid-rows-[30%_70%]">
@@ -116,7 +152,7 @@ useEffect(() => {
                 </div>
 
                 <div className="sm:flex sm:flex-col lg:col-span-2 lg:row-span-7 lg:col-start-3 lg:row-start-2 xl:col-span-2 xl:row-span-9 xl:col-start-4 xl:row-start-2">
-                  <CountrySection activeAuthors={activeAuthors} rows={rows} availableCountries={availableCountries} selectedCountries={selectedCountries} setSelectedCountries={setSelectedCountries} />
+                  <CountrySection  availableCountries={availableCountries}  filterCountries={filterCountries} filteredRows={filteredRows} setFilterCountries={setFilterCountries} />
                 </div>
               </div>
             ) : activeTab === 'Tabla de datos' ? (
@@ -126,7 +162,7 @@ useEffect(() => {
                 </h2>
                
                 <div className="flex-1 overflow-y-auto mt-6">
-                  <AuthorsTable  rows={rows} setRows={setRows} activeAuthors={activeAuthors} selectedCountries={selectedCountries} />
+                  <AuthorsTable  filteredRows={filteredRows} />
                 </div>
               </div>
             ):

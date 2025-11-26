@@ -4,7 +4,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { blueScale } from "./blueScale";
 import { countryNameToIso } from "./countryToiso";
 import { calculatePercentages } from "./calculatePercentages";
-
+import { countCountries } from "./countCountries"; 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
 type CountryType = {
@@ -15,24 +15,41 @@ type CountryType = {
 };
 
 export default function MapComponent({
-  selectedCountries, setSelectedCountries, availableCountries
+  filterCountries, availableCountries, filteredRows, setFilterCountries
 }: {
-  selectedCountries: CountryType[];
-  setSelectedCountries: (countries: CountryType[] | ((prev: CountryType[]) => CountryType[])) => void;
-  availableCountries: CountryType[];
+  filterCountries: string[];
+  availableCountries: string[];
+  filteredRows: any[];
+  setFilterCountries: (countries: string[] | ((prev: string[]) => string[])) => void;
 }) {
   const mapContainerRef = useRef(null);
+  const [counts, setCounts] = useState<CountryType[]>([]);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const availableRef = useRef(availableCountries);
-  const selectedRef = useRef(selectedCountries);
+  const selectedRef = useRef(counts);
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
   const hoveredRef = useRef(hoveredCountry);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
   useEffect(() => {
-    selectedRef.current = selectedCountries;
     popupRef.current?.remove();
     setHoveredCountry(null);
-  }, [selectedCountries]);
+    const uniqueCountriesISOSCounts = async () => {
+      const countriesData = await countCountries({filteredRows}); // Pass actual filtered rows if needed
+      // only keep the counts with the codes in filterCountries
+      if(filterCountries.length === 0) {
+        setCounts(countriesData);
+        return;
+      }
+      const filteredCounts = countriesData.filter(country => filterCountries.includes(country.code));
+      const recalculatedCounts = calculatePercentages(filteredCounts);
+      setCounts(recalculatedCounts);
+    };
+    uniqueCountriesISOSCounts();
+  }, [filteredRows]);
+  useEffect(() => {
+    console.log("Counts updated:", counts);
+    selectedRef.current = counts;
+  }, [counts]);
   useEffect(() => {
     hoveredRef.current = hoveredCountry;
   }, [hoveredCountry]);
@@ -91,30 +108,29 @@ export default function MapComponent({
 
         const isoCode = await countryNameToIso(country);
         if (!isoCode) return;
-        setSelectedCountries(prev => {
-          const existing = prev.find(c => c.code === isoCode);
-          // Case 1: All selected → reset to only clicked one
+
+        setFilterCountries(prev => {
+          // case 0: all selected → reset to only clicked one
           if (prev.length === countries.length) {
-            return calculatePercentages(countries.filter(c => c.code === isoCode));
+            return [isoCode];
           }
-
-          // Case 2: If already selected → remove it
-          if (existing) {
-            if (prev.length === 1) {
-              return calculatePercentages(countries);
+          // case 1: already selected → remove it
+            if (prev.includes(isoCode)) {
+              if (prev.length === 1) {
+              return [...countries];
             }
-            return calculatePercentages(prev.filter(c => c.code !== isoCode));
+            return prev.filter(c => c !== isoCode);
           }
-
-          // Case 3: Otherwise → add it
-          const found = countries.find(c => c.code === isoCode);
-          if (found) {
-            return calculatePercentages([...prev, found]);
+          // case 2: not selected → add it if in available countries
+          if (!prev.includes(isoCode)) {
+            if (countries.includes(isoCode)) {
+              return [...prev, isoCode];
+            }
           }
+          // case 3: fallback
           return prev;
         });
       });
-      
       map.on("mousemove", "countries-per-blue", (e) => {
         if (!e.features || !e.features.length) return;
         const country = e.features[0];
@@ -202,25 +218,28 @@ export default function MapComponent({
     map.addControl(new LegendControl());
   }, []);
 
-  // Update fill-color when selectedCountries changes
+  // Update fill-color when counts changes
   useEffect(() => {
   const map = mapRef.current;
   if (!map) return;
 
   if (!map.isStyleLoaded()) {
     map.once("load", () => {
-      applyColors(map, selectedCountries);
+      applyColors(map, counts);
     });
   } else {
-    applyColors(map, selectedCountries);
+    applyColors(map, counts);
   }
-}, [selectedCountries]);
+}, [counts]);
 
-  function applyColors(map: mapboxgl.Map, selectedCountries) {
+  function applyColors(map: mapboxgl.Map, counts: CountryType[]) {
     if (!map.getLayer("countries-per-blue")) return;
-
+    if (counts.length === 0) {
+      map.setPaintProperty("countries-per-blue", "fill-color", "transparent");
+      return;
+    }
     const matchExpression: any[] = ["match", ["get", "iso_3166_1"]];
-    for (const row of selectedCountries) {
+    for (const row of counts) {
       if (!row.percentage) continue;
       matchExpression.push(row.code, blueScale(row.percentage));
     }

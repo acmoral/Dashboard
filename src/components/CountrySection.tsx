@@ -6,7 +6,7 @@ import Flag from "react-world-flags";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { calculatePercentages } from './calculatePercentages';
 import { countryNameToIso } from './countryToiso';
-import { filterTableCountriesByAuthors } from './filterTableCountriesByAuthors';
+import { filterTableCountriesByAuthors } from './countCountries';
 const countries = [
   { name: 'Ecuador', count: 22, flag: '🇪🇨', code: 'ECU' },
   { name: 'España', count: 35, flag: '🇪🇸', code: 'ESP' },
@@ -19,22 +19,13 @@ type CountryType = {
   percentage?: number;
 };
 interface CountrySectionProps {
-  activeAuthors: Object[];
-  rows: any[];
-  availableCountries: CountryType[];
-  selectedCountries: CountryType[];
-  setSelectedCountries: (countries: CountryType[] | ((prev: CountryType[]) => CountryType[])) => void;
+  availableCountries: string[];
+  filterCountries: string[];
+  filteredRows: any[];
+  setFilterCountries: (countries: string[] | ((prev: string[]) => string[])) => void;
 }
-export function CountrySection({ activeAuthors, rows, availableCountries, selectedCountries, setSelectedCountries}: CountrySectionProps) {
-  useEffect(() => {
-    console.log("active authors changed");
-  }, [activeAuthors]);
-  useEffect(() => {
-    console.log("rows changed");
-  }, [rows]);
-  useEffect(() => {
-  console.log("Available countries updated:", availableCountries);
-}, [availableCountries]);
+export function CountrySection({ availableCountries, filterCountries, filteredRows, setFilterCountries}: CountrySectionProps) {
+
   const toggleCountry = (code: string) => {
     console.log("Toggling country:", code);
   };
@@ -50,14 +41,7 @@ export function CountrySection({ activeAuthors, rows, availableCountries, select
         {/* Simple map representation */}
           {/* Replace with actual map component */}
           <div className="sm:h-128 md:h-128 lg:h-full xl:h-full rounded-md overflow-hidden">
-          <MapComponent selectedCountries={selectedCountries} setSelectedCountries={setSelectedCountries} availableCountries={availableCountries} />
-          <div style={{ position: 'absolute', bottom: 10, left: 10, backgroundColor: 'white', padding: '10px', borderRadius: '8px', fontSize: '12px' }}>
-            {/* <div style={{ display: 'flex', alignItems: 'center' }}>
-              <span style={{ marginRight: '8px' }}>Low</span>
-              <div style={{ width: '100px', height: '10px', background: 'linear-gradient(to right, rgb(213, 244, 255), rgb(0, 52, 89))', borderRadius: '5px' }}></div>
-              <span style={{ marginLeft: '8px' }}>High</span>
-            </div> */}
-          </div>
+          <MapComponent filterCountries={filterCountries} availableCountries={availableCountries} filteredRows={filteredRows}   setFilterCountries={setFilterCountries} />
           </div>
       </Card>
 
@@ -69,7 +53,7 @@ export function CountrySection({ activeAuthors, rows, availableCountries, select
             <div 
               key={country.name}
               className={`flex text-sm items-center justify-between p-3 rounded-lg cursor-pointer transition-colors hover:bg-accent/50 ${
-                selectedCountries.includes(country.code) ? 'bg-accent/30' : ''
+                filterCountries.includes(country.code) ? 'bg-accent/30' : ''
               }`}
               onClick={() => toggleCountry(country.code)}
             >
