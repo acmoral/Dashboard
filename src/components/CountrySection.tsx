@@ -1,12 +1,11 @@
 import { useState,useEffect } from 'react';
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
+import {X} from "lucide-react";
 import MapComponent  from './mapView';
 import Flag from "react-world-flags";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { calculatePercentages } from './calculatePercentages';
-import { countryNameToIso } from './countryToiso';
-import { filterTableCountriesByAuthors } from './countCountries';
+
 const countries = [
   { name: 'Ecuador', count: 22, flag: '🇪🇨', code: 'ECU' },
   { name: 'España', count: 35, flag: '🇪🇸', code: 'ESP' },
@@ -25,7 +24,10 @@ interface CountrySectionProps {
   setFilterCountries: (countries: string[] | ((prev: string[]) => string[])) => void;
 }
 export function CountrySection({ availableCountries, filterCountries, filteredRows, setFilterCountries}: CountrySectionProps) {
-
+  const [counts, setCounts] = useState<CountryType[]>([]);
+  useEffect(() => {
+    console.log("Counts updated:", counts);
+  }, [counts]);
   const toggleCountry = (code: string) => {
     console.log("Toggling country:", code);
   };
@@ -41,7 +43,7 @@ export function CountrySection({ availableCountries, filterCountries, filteredRo
         {/* Simple map representation */}
           {/* Replace with actual map component */}
           <div className="sm:h-128 md:h-128 lg:h-full xl:h-full rounded-md overflow-hidden">
-          <MapComponent filterCountries={filterCountries} availableCountries={availableCountries} filteredRows={filteredRows}   setFilterCountries={setFilterCountries} />
+          <MapComponent filterCountries={filterCountries} availableCountries={availableCountries} counts={counts} filteredRows={filteredRows} setFilterCountries={setFilterCountries}  setCounts={setCounts}/>
           </div>
       </Card>
 
@@ -49,9 +51,12 @@ export function CountrySection({ availableCountries, filterCountries, filteredRo
       <Card className="p-4 overflow-y-auto lg:row-start-4">
         <h3 className="text-base font-medium mb-4">Países</h3>
         <div className="space-y-3">
-          {countries.map((country) => (
-            <div 
-              key={country.name}
+          {filterCountries.length > 0 && (
+            <div className="text-sm text-muted-foreground">{counts.length} países seleccionados  <Button variant="outline" size="sm" onClick={() => setFilterCountries([])}>remover filtro <X className="ml-1" /></Button></div>
+          )}
+          {counts.map((country) => (
+            <div
+              key={country.code}
               className={`flex text-sm items-center justify-between p-3 rounded-lg cursor-pointer transition-colors hover:bg-accent/50 ${
                 filterCountries.includes(country.code) ? 'bg-accent/30' : ''
               }`}

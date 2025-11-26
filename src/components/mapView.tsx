@@ -4,7 +4,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { blueScale } from "./blueScale";
 import { countryNameToIso } from "./countryToiso";
 import { calculatePercentages } from "./calculatePercentages";
-import { countCountries } from "./countCountries"; 
+import { countCountries } from "./countCountries";
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
 type CountryType = {
@@ -15,15 +15,16 @@ type CountryType = {
 };
 
 export default function MapComponent({
-  filterCountries, availableCountries, filteredRows, setFilterCountries
+  filterCountries, availableCountries, counts, filteredRows,setCounts,setFilterCountries
 }: {
   filterCountries: string[];
   availableCountries: string[];
+  counts: CountryType[];
   filteredRows: any[];
+  setCounts: (counts: CountryType[] | ((prev: CountryType[]) => CountryType[])) => void;
   setFilterCountries: (countries: string[] | ((prev: string[]) => string[])) => void;
 }) {
   const mapContainerRef = useRef(null);
-  const [counts, setCounts] = useState<CountryType[]>([]);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const availableRef = useRef(availableCountries);
   const selectedRef = useRef(counts);
@@ -117,7 +118,7 @@ export default function MapComponent({
           // case 1: already selected → remove it
             if (prev.includes(isoCode)) {
               if (prev.length === 1) {
-              return [...countries];
+              return [];
             }
             return prev.filter(c => c !== isoCode);
           }
