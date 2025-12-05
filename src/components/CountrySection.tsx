@@ -25,12 +25,6 @@ interface CountrySectionProps {
 }
 export function CountrySection({ availableCountries, filterCountries, filteredRows, setFilterCountries}: CountrySectionProps) {
   const [counts, setCounts] = useState<CountryType[]>([]);
-  useEffect(() => {
-    console.log("Counts updated:", counts);
-  }, [counts]);
-  const toggleCountry = (code: string) => {
-    console.log("Toggling country:", code);
-  };
   return (
     <div className="sm:flex sm:flex-col sm:h-full lg:grid lg:grid-rows-4 lg:grid-cols-1 lg:h-full xl:grid xl:grid-cols-1 gap-6">
       {/* Map Section */}

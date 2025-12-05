@@ -28,7 +28,13 @@ export default function App() {
   const [rows, setRows] = useState([]);
   const [filterCountries, setFilterCountries] = useState<string[]>([]);
   const [filteredRows, setFilteredRows] = useState([]);
-
+  const [numberOfActiveAuthors, setNumberOfActiveAuthors] = useState(0);
+  const [totaluniqueAuthors, setTotalUniqueAuthors] = useState(0);
+  const [numberOfActiveCountries, setNumberOfActiveCountries] = useState(0);
+  const [totaluniqueCountries, setTotalUniqueCountries] = useState(0);
+  const [totalEstudios, setTotalEstudios] = useState(0);
+  const [numerodeEnfermedades, setEnfermedades] = useState(0);
+  const [totalNumberEnfermedades, setTotalNumberEnfermedades] = useState(0);
   // ----------------------------------
   // Fetch initial data
   // ----------------------------------
@@ -46,9 +52,20 @@ export default function App() {
       const authors = Array.from(new Set(data.map((item: any) => item.inv_cor).filter(Boolean)));
       setAvailableAuthors(authors);
       setAvailableCountries(uniqueCountriesISOS);
+      setTotalUniqueAuthors(authors.length);
+      setTotalUniqueCountries(uniqueCountriesISOS.length);
+      setTotalEstudios(data.length);
     };
     fetchData();
   }, []);
+  useEffect(() =>
+  {   const fetchNumberTotal = async ()=>{
+      const tipoDiseaseData = await filterTableTipoDisease({filteredRows})
+      setTotalNumberEnfermedades(tipoDiseaseData.length)
+
+  };
+    fetchNumberTotal();
+  }, [rows]);
   //----------------------------------
   // Handlers
   //----------------------------------
@@ -57,6 +74,9 @@ export default function App() {
       const filtered = await filterRowsByCountry(filterCountries, rows);
       const finalFiltered = await filterRowsByAuthor(activeAuthors, filtered);
       const authors = Array.from(new Set(filtered.map((item: any) => item.inv_cor).filter(Boolean)));
+      const numberOfAuthors = activeAuthors.length === 0 ? authors.length : activeAuthors.length;
+      setNumberOfActiveAuthors(numberOfAuthors);
+      setNumberOfActiveCountries(filterCountries.length === 0 ? availableCountries.length : filterCountries.length);
       setAvailableAuthors(authors);
       setFilteredRows(finalFiltered);
     };
@@ -73,6 +93,9 @@ export default function App() {
       );
       const uniqueCountriesISOS = Array.from(new Set(countriesISOS.filter(code => code)));
       setAvailableCountries(uniqueCountriesISOS);
+      const numberOfCountries = filterCountries.length === 0 ? uniqueCountriesISOS.length : filterCountries.length;
+      setNumberOfActiveCountries(numberOfCountries);
+      setNumberOfActiveAuthors(activeAuthors.length === 0 ? availableAuthors.length : activeAuthors.length);
       setFilteredRows(finalFiltered);
     };
     run();
@@ -82,21 +105,15 @@ export default function App() {
     setActiveItem(item);
   };
   useEffect(() => {
-    console.log("Active countries changed:", filterCountries);
-  }, [filterCountries]);
-  useEffect(() => {
-    console.log("Active authors changed:", activeAuthors);
-  }, [activeAuthors]);
-  useEffect(() => {
-    console.log("Filtered rows changed:", filteredRows);
-  }, [filteredRows]);
-  useEffect(() => {
     const run = async () => {
       const tipoAtencionData = await filterTableTipoAtencion({filteredRows});
       const tipoDominioData = await filterTableTipoDom({filteredRows});
       const tipoDesignData = await filterTableDesign({filteredRows});
       const tipoDiseaseData = await filterTableTipoDisease({filteredRows});
+      const enfermedadesNumero = tipoDiseaseData.length
+
       setTipoDisease(tipoDiseaseData);
+      setEnfermedades(enfermedadesNumero);
       setTipoDominio(tipoDominioData);
       setTipoAtencion(tipoAtencionData);
       setTipoDesign(tipoDesignData);
@@ -134,7 +151,7 @@ export default function App() {
       <Sidebar activeItem={activeItem} activeTab={activeTab} activeAuthors={activeAuthors} availableAuthors={availableAuthors}  onDateFilterChange={handleDateFilterChange} onAuthorFilterChange={handleAuthorFilterChange} onItemClick={handleItemClick} onTabClick={handleTabChange} />
 
       {/* Main Content */}
-      <div className="sm:bg-red h-full w-full grid grid-rows-[30%_70%]">
+      <div className="h-full w-full grid grid-rows-[30%_70%]">
         {/* Header */}
         
         {/* Content */}
@@ -144,7 +161,7 @@ export default function App() {
               <div className="h-full  sm:flex sm:gap-4 sm:overflow-y:auto sm:flex-col md:overflow-y:auto md:grid md:gap-4 lg:grid lg:grid-cols-5 lg:grid-rows-7 xl:grid xl:grid-cols-5 xl:grid-rows-7  gap-4 p-3">
                 {/* Statistics Cards */}
                 <div className="sm:flex sm:justify-center lg:col-span-5 xl:col-span-5  w-full ">
-                  <StatsCards />
+                  <StatsCards totalEstudios={totalEstudios} numberOfActiveAuthors={numberOfActiveAuthors} totaluniqueAuthors={totaluniqueAuthors} numberOfActiveCountries={numberOfActiveCountries} totaluniqueCountries={totaluniqueCountries} totalNumberEnfermedades={totalNumberEnfermedades} numerodeEnfermedades={numerodeEnfermedades} />
                 </div>
 
                 <div className="sm:flex-1 md:row-span-9 md:row-start-2 lg:col-start-1 lg:col-span-3 xl:col-start-1 xl:col-span-3">

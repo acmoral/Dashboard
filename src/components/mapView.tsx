@@ -47,10 +47,9 @@ export default function MapComponent({
     };
     uniqueCountriesISOSCounts();
   }, [filteredRows]);
-  useEffect(() => {
-    console.log("Counts updated:", counts);
+  useEffect(()=>{
     selectedRef.current = counts;
-  }, [counts]);
+  },[counts])
   useEffect(() => {
     hoveredRef.current = hoveredCountry;
   }, [hoveredCountry]);
@@ -136,7 +135,6 @@ export default function MapComponent({
         if (!e.features || !e.features.length) return;
         const country = e.features[0];
         if (!country) return;
-
         if (hoveredRef.current === country.properties?.name) return;
         // Create a popup
         setHoveredCountry(country.properties?.name || null);
@@ -144,12 +142,12 @@ export default function MapComponent({
         if (popupRef.current) {
           popupRef.current.remove();
         }
-        if (selectedRef.current.find(c => c.name === country.properties?.name)) {
-          const name = selectedRef.current.find(c => c.name === country.properties?.name)?.name || country.properties?.name;
-          const percentage = selectedRef.current.find(c => c.name === country.properties?.name)?.percentage || 0;
+        if (selectedRef.current.find(c => c.code === country.properties?.iso_3166_1)) {
+          const name = selectedRef.current.find(c => c.code === country.properties?.iso_3166_1)?.name || country.properties?.name;
+          const percentage = selectedRef.current.find(c => c.code === country.properties?.iso_3166_1)?.percentage || 0;
           // round to 2 decimals
           const roundedPercentage = Math.round(percentage * 100 * 100) / 100;
-          const conteo = selectedRef.current.find(c => c.name === country.properties?.name)?.count || 0;
+          const conteo = selectedRef.current.find(c => c.code === country.properties?.iso_3166_1)?.count || 0;
           const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false })
             .setLngLat((country.geometry.type === "Point") ? country.geometry.coordinates : e.lngLat)
             .setHTML(`<strong>${name}</strong>
