@@ -13,7 +13,9 @@ import { AcercaDe } from './components/AcercaDe';
 import { countryNameToIso } from "./components/countryToiso";
 import { filterRowsByCountry } from './components/filterRowsByCountry';
 import { filterRowsByAuthor } from './components/filterRowsByAuthor';
+import { filterRowsByDate } from './components/filterRowsByDate';
 import { useEffect } from 'react';
+import { parseDate } from './components/parseDates';
 export default function App() {
   const [activeItem, setActiveItem] = useState('dashboard');
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -50,6 +52,21 @@ export default function App() {
       );
       const uniqueCountriesISOS = Array.from(new Set(countriesISOS.filter(code => code)));
       const authors = Array.from(new Set(data.map((item: any) => item.inv_cor).filter(Boolean)));
+      const allPosibleDateRanges = data.map((item: any) => item.db_tim).flatMap((d: string) => d.split(";"));
+      const allPosibleDates = allPosibleDateRanges
+      .flatMap((dateStr: string) => dateStr.split(/[-–]/))
+      .map((s: string) => s.trim());
+      const parsedDates = allPosibleDates
+      .map((dateStr: string) => parseDate(dateStr))
+      .filter((date: Date | null): date is Date => date !== null)
+      .map((date: Date) => date.toISOString().split('T')[0]);
+      const uniqueDates = Array.from(new Set(parsedDates));
+      const minDate = uniqueDates.length > 0 ? new Date(Math.min(...uniqueDates.map(dateStr => new Date(dateStr).getTime()))) : null;
+      const maxDate = uniqueDates.length > 0 ? new Date(Math.max(...uniqueDates.map(dateStr => new Date(dateStr).getTime()))) : null;
+      if (minDate && maxDate && (!activeDates.startDate || !activeDates.endDate)) {
+        setActiveDates({ startDate: minDate.toISOString().split('T')[0], endDate: maxDate.toISOString().split('T')[0] });
+      }
+      console.log("Initial date range:", minDate?.toISOString().split('T')[0], "to", maxDate?.toISOString().split('T')[0]);
       setAvailableAuthors(authors);
       setAvailableCountries(uniqueCountriesISOS);
       setTotalUniqueAuthors(authors.length);
@@ -72,9 +89,24 @@ export default function App() {
   useEffect(() => {
     const run = async () => {
       const filtered = await filterRowsByCountry(filterCountries, rows);
-      const finalFiltered = await filterRowsByAuthor(activeAuthors, filtered);
+      const filteredByDate = await filterRowsByDate(activeDates, filtered);
+      const finalFiltered = await filterRowsByAuthor(activeAuthors, filteredByDate);
       const authors = Array.from(new Set(filtered.map((item: any) => item.inv_cor).filter(Boolean)));
       const numberOfAuthors = activeAuthors.length === 0 ? authors.length : activeAuthors.length;
+      const allPosibleDateRanges = filtered.map((item: any) => item.db_tim).flatMap((d: string) => d.split(";"));
+      const allPosibleDates = allPosibleDateRanges
+      .flatMap((dateStr: string) => dateStr.split(/[-–]/))
+      .map((s: string) => s.trim());
+      const parsedDates = allPosibleDates
+      .map((dateStr: string) => parseDate(dateStr))
+      .filter((date: Date | null): date is Date => date !== null)
+      .map((date: Date) => date.toISOString().split('T')[0]);
+      const uniqueDates = Array.from(new Set(parsedDates));
+      const minDate = uniqueDates.length > 0 ? new Date(Math.min(...uniqueDates.map(dateStr => new Date(dateStr).getTime()))) : null;
+      const maxDate = uniqueDates.length > 0 ? new Date(Math.max(...uniqueDates.map(dateStr => new Date(dateStr).getTime()))) : null;
+      if (minDate && maxDate && (!activeDates.startDate || !activeDates.endDate)) {
+        setActiveDates({ startDate: minDate.toISOString().split('T')[0], endDate: maxDate.toISOString().split('T')[0] });
+      }
       setNumberOfActiveAuthors(numberOfAuthors);
       setNumberOfActiveCountries(filterCountries.length === 0 ? availableCountries.length : filterCountries.length);
       setAvailableAuthors(authors);
@@ -86,11 +118,26 @@ export default function App() {
   useEffect(() => {
     const run = async () => {
       const filtered = filterRowsByAuthor(activeAuthors, rows);
-      const finalFiltered = await filterRowsByCountry(filterCountries, filtered);
+      const filteredByDate = await filterRowsByDate(activeDates, filtered);
+      const finalFiltered = await filterRowsByCountry(filterCountries, filteredByDate);
       const countries = Array.from(new Set(filtered.map((item: any) => item.inv_con).flatMap((c: string) => c.split(";")).map((c: string) => c.trim()).filter(Boolean)));
       const countriesISOS = await Promise.all(
         countries.map((country) => countryNameToIso(country))
       );
+      const allPosibleDateRanges =  filtered.map((item: any) => item.db_tim).flatMap((d: string) => d.split(";"));
+      const allPosibleDates = allPosibleDateRanges
+      .flatMap((dateStr: string) => dateStr.split(/[-–]/))
+      .map((s: string) => s.trim());
+      const parsedDates = allPosibleDates
+      .map((dateStr: string) => parseDate(dateStr))
+      .filter((date: Date | null): date is Date => date !== null)
+      .map((date: Date) => date.toISOString().split('T')[0]);
+      const uniqueDates = Array.from(new Set(parsedDates));
+      const minDate = uniqueDates.length > 0 ? new Date(Math.min(...uniqueDates.map(dateStr => new Date(dateStr).getTime()))) : null;
+      const maxDate = uniqueDates.length > 0 ? new Date(Math.max(...uniqueDates.map(dateStr => new Date(dateStr).getTime()))) : null;
+      if (minDate && maxDate && (!activeDates.startDate || !activeDates.endDate)) {
+        setActiveDates({ startDate: minDate.toISOString().split('T')[0], endDate: maxDate.toISOString().split('T')[0] });
+      }
       const uniqueCountriesISOS = Array.from(new Set(countriesISOS.filter(code => code)));
       setAvailableCountries(uniqueCountriesISOS);
       const numberOfCountries = filterCountries.length === 0 ? uniqueCountriesISOS.length : filterCountries.length;
@@ -100,6 +147,27 @@ export default function App() {
     };
     run();
   }, [activeAuthors,rows]);
+  useEffect(() => {
+    const run = async () => {
+      const filtered = await filterRowsByDate(activeDates, rows);
+      const filteredByAuthor = await filterRowsByAuthor(activeAuthors, filtered);
+      const finalFiltered = await filterRowsByCountry(filterCountries, filteredByAuthor);
+      const activeAuthorsSet = Array.from(new Set(filtered.map((item: any) => item.inv_cor).filter(Boolean)));
+      setAvailableAuthors(activeAuthorsSet);
+      const countries = Array.from(new Set(filtered.map((item: any) => item.inv_con).flatMap((c: string) => c.split(";")).map((c: string) => c.trim()).filter(Boolean)));
+      const countriesISOS = await Promise.all(
+        countries.map((country) => countryNameToIso(country))
+      );  
+      const uniqueCountriesISOS = Array.from(new Set(countriesISOS.filter(code => code)));
+      setAvailableCountries(uniqueCountriesISOS);
+      const numberOfAuthors = activeAuthors.length === 0 ? activeAuthorsSet.length : activeAuthors.length;
+      setNumberOfActiveAuthors(numberOfAuthors);
+      const numberOfCountries = filterCountries.length === 0 ? uniqueCountriesISOS.length : filterCountries.length;
+      setNumberOfActiveCountries(numberOfCountries);  
+      setFilteredRows(finalFiltered);
+    };
+    run();
+  }, [activeDates,rows]);
 
   const handleItemClick = (item: string) => {
     setActiveItem(item);
@@ -143,12 +211,11 @@ export default function App() {
   };
   const handleDateFilterChange = (startDate: string, endDate: string) => {
     setActiveDates({ startDate, endDate });
-    console.log("Date filter changed in App:", startDate, endDate); 
   };
   return (
     <div className="flex h-svh">
       {/* Sidebar */}
-      <Sidebar activeItem={activeItem} activeTab={activeTab} activeAuthors={activeAuthors} availableAuthors={availableAuthors}  onDateFilterChange={handleDateFilterChange} onAuthorFilterChange={handleAuthorFilterChange} onItemClick={handleItemClick} onTabClick={handleTabChange} />
+      <Sidebar activeItem={activeItem} activeTab={activeTab} activeAuthors={activeAuthors} availableAuthors={availableAuthors} activeDates={activeDates} onDateFilterChange={handleDateFilterChange} onAuthorFilterChange={handleAuthorFilterChange} onItemClick={handleItemClick} onTabClick={handleTabChange} />
 
       {/* Main Content */}
       <div className="h-full w-full grid grid-rows-[30%_70%]">

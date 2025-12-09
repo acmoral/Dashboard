@@ -3,7 +3,7 @@ import { Input } from "./ui/input";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
 import logo from '../assets/logo.png';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 
 interface SidebarProps {
@@ -11,6 +11,7 @@ interface SidebarProps {
   activeTab?: string;
   activeAuthors?: string[];
   availableAuthors?: string[];
+  activeDates?: { startDate: string; endDate: string };
   onDateFilterChange?: (startDate: string, endDate: string) => void;
   onAuthorFilterChange?: (filter: string) => void;
   onTabClick: (tab: string) => void;
@@ -20,10 +21,13 @@ const onButtonClick = (tab: string,item:string, onTabClick: (tab: string) => voi
   onTabClick(tab);
   onItemClick(item);
 };
-export function Sidebar({ activeItem, activeTab, activeAuthors = [], availableAuthors = [],  onDateFilterChange, onAuthorFilterChange = () => {}, onTabClick, onItemClick }: SidebarProps) {
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-
+export function Sidebar({ activeItem, activeTab, activeAuthors = [], availableAuthors = [], activeDates, onDateFilterChange, onAuthorFilterChange = () => {}, onTabClick, onItemClick }: SidebarProps) {
+  const [startDate, setStartDate] = useState(activeDates?.startDate || "");
+  const [endDate, setEndDate] = useState(activeDates?.endDate || "");
+  useEffect(() => {
+    setStartDate(activeDates?.startDate || "");
+    setEndDate(activeDates?.endDate || "");
+  }, [activeDates]);
   const isSafari = typeof window !== "undefined" && /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
   const handleStartDateChange = (value: string) => {
@@ -172,7 +176,7 @@ export function Sidebar({ activeItem, activeTab, activeAuthors = [], availableAu
 
             {(startDate && endDate) ? (
               <div className="relative w-full">
-                <Button type="button" variant="ghost" size="icon" onClick={() => {setStartDate(""); setEndDate(""); onDateFilterChange({ startDate: null, endDate: null }); }} className="placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border px-3 py-1 text-base bg-input-background transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
+                <Button type="button" variant="ghost" size="icon" onClick={() => {setStartDate(""); setEndDate(""); onDateFilterChange?.("", ""); }} className="placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border px-3 py-1 text-base bg-input-background transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm">
                   {`${new Date(startDate).toLocaleDateString('en-US')} - ${new Date(endDate).toLocaleDateString('en-US')}`}
                   <X className="w-4 h-4 text-muted-foreground" />
                 </Button>
