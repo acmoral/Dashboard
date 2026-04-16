@@ -1,11 +1,18 @@
-import { useEffect, useRef, useState} from "react";
+import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { blueScale } from "./blueScale";
 import { countryNameToIso } from "./countryToiso";
-import { calculatePercentages } from "./calculatePercentages";
 import { countCountries } from "./countCountries";
+import { columnConfig } from "./configTable";
+
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+
+type ColumnConfig = typeof columnConfig;
+
+type FilterableKeys = {
+  [K in keyof ColumnConfig]: ColumnConfig[K]["filter"] extends true ? K : never
+}[keyof ColumnConfig];
 
 type CountryType = {
   name: string;
@@ -15,49 +22,64 @@ type CountryType = {
 };
 
 export default function MapComponent({
-  filterCountries, availableCountries, counts, filteredRows,setCounts,setFilterCountries
+  availableCountries,
+  counts,
+  filteredRows,
+  setCounts,
+  setFilterCountries
 }: {
-  filterCountries: string[];
   availableCountries: string[];
   counts: CountryType[];
   filteredRows: any[];
   setCounts: (counts: CountryType[] | ((prev: CountryType[]) => CountryType[])) => void;
-  setFilterCountries: (countries: string[] | ((prev: string[]) => string[])) => void;
+  setFilterCountries: (
+    key: FilterableKeys,
+    value: string,
+    allItems: string[]
+  ) => void;
 }) {
+
   const mapContainerRef = useRef(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
+
   const availableRef = useRef(availableCountries);
   const selectedRef = useRef(counts);
+
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
   const hoveredRef = useRef(hoveredCountry);
+
   const popupRef = useRef<mapboxgl.Popup | null>(null);
+
+  // -----------------------------
+  // UPDATE COUNTS
+  // -----------------------------
   useEffect(() => {
     popupRef.current?.remove();
     setHoveredCountry(null);
-    const uniqueCountriesISOSCounts = async () => {
-      const countriesData = await countCountries({filteredRows}); // Pass actual filtered rows if needed
-      // only keep the counts with the codes in filterCountries
-      if(filterCountries.length === 0) {
-        setCounts(countriesData);
-        return;
-      }
-      const filteredCounts = countriesData.filter(country => filterCountries.includes(country.code));
-      const recalculatedCounts = calculatePercentages(filteredCounts);
-      setCounts(recalculatedCounts);
+
+    const run = async () => {
+      const countriesData = await countCountries({ filteredRows });
+      setCounts(countriesData);
     };
-    uniqueCountriesISOSCounts();
+
+    run();
   }, [filteredRows]);
-  useEffect(()=>{
+
+  useEffect(() => {
     selectedRef.current = counts;
-  },[counts])
+  }, [counts]);
+
   useEffect(() => {
     hoveredRef.current = hoveredCountry;
   }, [hoveredCountry]);
+
   useEffect(() => {
     availableRef.current = availableCountries;
   }, [availableCountries]);
-  
-  // Initialize map only once
+
+  // -----------------------------
+  // INIT MAP
+  // -----------------------------
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
@@ -70,23 +92,12 @@ export default function MapComponent({
     });
 
     map.addControl(new mapboxgl.NavigationControl());
-    
+
     map.on("load", () => {
       map.addSource("countries", {
         type: "vector",
         url: "mapbox://mapbox.country-boundaries-v1",
       });
-
-      const WORLDVIEW = "US";
-      const worldview_filter = [
-        "all",
-        ["==", ["get", "disputed"], "false"],
-        [
-          "any",
-          ["==", "all", ["get", "worldview"]],
-          ["in", WORLDVIEW, ["get", "worldview"]],
-        ],
-      ];
 
       map.addLayer({
         id: "countries-per-blue",
@@ -94,155 +105,106 @@ export default function MapComponent({
         source: "countries",
         "source-layer": "country_boundaries",
         paint: {
-          "fill-color": "transparent", // default
+          "fill-color": "transparent",
           "fill-opacity": 0.8,
         },
-        filter: worldview_filter,
       });
 
-      // Optional: click handler
+      // -----------------------------
+      // CLICK
+      // -----------------------------
       map.on("click", "countries-per-blue", async (e) => {
-        const country = e.features?.[0]?.properties?.name;
-        const countries = availableRef.current;
-        if (!country) return;
+        if (!e.features?.length) return;
 
-        const isoCode = await countryNameToIso(country);
+        const feature = e.features[0];
+        const isoFromFeature = feature.properties?.iso_3166_1?.toUpperCase();
+
+        const isoCode =
+          isoFromFeature ||
+          await countryNameToIso(feature.properties?.name);
+
         if (!isoCode) return;
 
-        setFilterCountries(prev => {
-          // case 0: all selected → reset to only clicked one
-          if (prev.length === countries.length) {
-            return [isoCode];
-          }
-          // case 1: already selected → remove it
-            if (prev.includes(isoCode)) {
-              if (prev.length === 1) {
-              return [];
-            }
-            return prev.filter(c => c !== isoCode);
-          }
-          // case 2: not selected → add it if in available countries
-          if (!prev.includes(isoCode)) {
-            if (countries.includes(isoCode)) {
-              return [...prev, isoCode];
-            }
-          }
-          // case 3: fallback
-          return prev;
-        });
-      });
-      map.on("mousemove", "countries-per-blue", (e) => {
-        if (!e.features || !e.features.length) return;
-        const country = e.features[0];
-        if (!country) return;
-        if (hoveredRef.current === country.properties?.name) return;
-        // Create a popup
-        setHoveredCountry(country.properties?.name || null);
-        map.getCanvas().style.cursor = "pointer";
-        if (popupRef.current) {
-          popupRef.current.remove();
-        }
-        if (selectedRef.current.find(c => c.code === country.properties?.iso_3166_1)) {
-          const name = selectedRef.current.find(c => c.code === country.properties?.iso_3166_1)?.name || country.properties?.name;
-          const percentage = selectedRef.current.find(c => c.code === country.properties?.iso_3166_1)?.percentage || 0;
-          // round to 2 decimals
-          const roundedPercentage = Math.round(percentage * 100 * 100) / 100;
-          const conteo = selectedRef.current.find(c => c.code === country.properties?.iso_3166_1)?.count || 0;
-          const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false })
-            .setLngLat((country.geometry.type === "Point") ? country.geometry.coordinates : e.lngLat)
-            .setHTML(`<strong>${name}</strong>
-              <br/> Porcentaje: ${roundedPercentage}%<br/>Conteo: ${conteo}`)
-            .addTo(map);
-          popupRef.current = popup;
-          map.on("mouseleave", "countries-per-blue", () => {
-            map.getCanvas().style.cursor = "";
-            popup.remove();
-            setHoveredCountry(null);
-          });
-        }
+        setFilterCountries("con", isoCode, availableCountries);
       });
 
-      return () => map.remove();
+      // -----------------------------
+      // HOVER
+      // -----------------------------
+      map.on("mousemove", "countries-per-blue", (e) => {
+        if (!e.features?.length) return;
+
+        const country = e.features[0];
+        const iso = country.properties?.iso_3166_1;
+
+        if (hoveredRef.current === country.properties?.name) return;
+
+        setHoveredCountry(country.properties?.name || null);
+        map.getCanvas().style.cursor = "pointer";
+
+        popupRef.current?.remove();
+
+        const selected = selectedRef.current.find(c => c.code === iso);
+        if (!selected) return;
+
+        const roundedPercentage =
+          Math.round((selected.percentage || 0) * 100 * 100) / 100;
+
+        const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false })
+          .setLngLat(e.lngLat)
+          .setHTML(`
+            <strong>${selected.name}</strong>
+            <br/>Porcentaje: ${roundedPercentage}%
+            <br/>Conteo: ${selected.count}
+          `)
+          .addTo(map);
+
+        popupRef.current = popup;
+
+        map.on("mouseleave", "countries-per-blue", () => {
+          map.getCanvas().style.cursor = "";
+          popup.remove();
+          setHoveredCountry(null);
+        });
+      });
     });
 
     mapRef.current = map;
-    // Legend Control
-    class LegendControl {
-      onAdd(map: mapboxgl.Map) {
-        this._map = map;
-        this._container = document.createElement("div");
-        this._container.className = "mapboxgl-ctrl legend-ctrl";
 
-        const legendTitle = document.createElement("div");
-        legendTitle.innerText = "Porcentaje";
-        legendTitle.style.fontWeight = "bold";
-        legendTitle.style.marginBottom = "8px";
-        this._container.appendChild(legendTitle);
-
-        const grades = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1];
-        const labels = [];
-
-        for (let i = 0; i < grades.length - 1; i++) {
-          const from = grades[i];
-          const to = grades[i + 1];
-          const color = blueScale((from + to) / 2);
-
-          const item = document.createElement("div");
-          item.style.display = "flex";
-          item.style.alignItems = "center";
-          item.style.marginBottom = "4px";
-
-          const colorBox = document.createElement("span");
-          colorBox.style.width = "20px";
-          colorBox.style.height = "20px";
-          colorBox.style.backgroundColor = color;
-          colorBox.style.marginRight = "8px";
-          item.appendChild(colorBox);
-
-          const label = document.createElement("span");
-          label.innerText = `${Math.round(from * 100)}% - ${Math.round(to * 100)}%`;
-          item.appendChild(label);
-
-          this._container.appendChild(item);
-        }
-
-        return this._container;
-      }
-
-      onRemove() {
-        this._container.parentNode?.removeChild(this._container);
-        this._map = undefined;
-      }
-    } 
-    map.addControl(new LegendControl());
+    return () => map.remove();
   }, []);
 
-  // Update fill-color when counts changes
+  // -----------------------------
+  // UPDATE COLORS
+  // -----------------------------
   useEffect(() => {
-  const map = mapRef.current;
-  if (!map) return;
+    const map = mapRef.current;
+    if (!map) return;
 
-  if (!map.isStyleLoaded()) {
-    map.once("load", () => {
+    if (!map.isStyleLoaded()) {
+      map.once("load", () => applyColors(map, counts));
+    } else {
       applyColors(map, counts);
-    });
-  } else {
-    applyColors(map, counts);
-  }
-}, [counts]);
+    }
+  }, [counts]);
 
-  function applyColors(map: mapboxgl.Map, counts: CountryType[]) {
+  function applyColors(map: mapboxgl.Map, data: CountryType[]) {
     if (!map.getLayer("countries-per-blue")) return;
-    if (counts.length === 0) {
+
+    if (data.length === 0) {
       map.setPaintProperty("countries-per-blue", "fill-color", "transparent");
       return;
     }
+
     const matchExpression: any[] = ["match", ["get", "iso_3166_1"]];
-    for (const row of counts) {
+
+    for (const row of data) {
       if (!row.percentage) continue;
       matchExpression.push(row.code, blueScale(row.percentage));
     }
+
     matchExpression.push("transparent");
+
     map.setPaintProperty("countries-per-blue", "fill-color", matchExpression);
   }
 

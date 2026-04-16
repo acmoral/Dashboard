@@ -9,7 +9,7 @@ type CountryType = {
 };
 export async function countCountries({filteredRows}: {filteredRows: any[]}): Promise<CountryType[]> {
 
-    const countries = filteredRows.map(row => row.inv_con.split(";").map((c: string) => c.trim())).flat();
+    const countries = filteredRows.map(row => row.con.split(";").map((c: string) => c.trim())).flat();
     const countryCounts: CountryType[] = [];
     countries.forEach((country: string) => {
       const existing = countryCounts.find(c => c.name === country);

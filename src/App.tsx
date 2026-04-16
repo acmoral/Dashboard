@@ -1,259 +1,309 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
-import { StatsCards } from './components/StatsCards';
-import { Charts } from './components/Charts';
 import { CountrySection } from './components/CountrySection';
 import { AuthorsTable } from './components/AuthorsTable';
-import {fetchDatabase} from "./components/FetchDatabase";
-import { filterTableTipoAtencion } from './components/filterTableTipoAtencion';
-import { filterTableTipoDom } from './components/filterTableDominioPregunta';
-import { filterTableDesign } from './components/filterTableDesign';
-import { filterTableTipoDisease } from './components/filterTableDisease';
+import { fetchDatabase } from "./components/FetchDatabase";
 import { AcercaDe } from './components/AcercaDe';
 import { countryNameToIso } from "./components/countryToiso";
-import { filterRowsByCountry } from './components/filterRowsByCountry';
-import { filterRowsByAuthor } from './components/filterRowsByAuthor';
-import { filterRowsByDate } from './components/filterRowsByDate';
-import { useEffect } from 'react';
-import { parseDate } from './components/parseDates';
+import { aggregateCounts } from './components/filterItem';
+import { filterRows } from './components/filterRows';
+import { DashboardHeader } from './components/DashboardHeader';
+import { columnConfig } from './components/configTable';
+
 export default function App() {
+
+  // -----------------------------
+  // TYPES
+  // -----------------------------
+  type ColumnConfig = typeof columnConfig;
+
+  type FilterableKeys = {
+    [K in keyof ColumnConfig]: ColumnConfig[K]["filter"] extends true ? K : never
+  }[keyof ColumnConfig];
+
+  type AggregationItem = {
+    name: string;
+    value: number;
+    color: string;
+  };
+
+  // -----------------------------
+  // INITIAL STATE
+  // -----------------------------
+  const initialFilters = Object.fromEntries(
+    Object.entries(columnConfig)
+      .filter(([_, config]) => config.filter)
+      .map(([key]) => [key, [] as string[]])
+  ) as Record<FilterableKeys, string[]>;
+
+  const initialAggregations = Object.fromEntries(
+    Object.entries(columnConfig)
+      .filter(([_, config]) => config.filter)
+      .map(([key]) => [key, [] as AggregationItem[]])
+  ) as Record<FilterableKeys, AggregationItem[]>;
+
+  const [filters, setFilters] = useState(initialFilters);
+  const [aggregations, setAggregations] = useState(initialAggregations);
   const [activeItem, setActiveItem] = useState('dashboard');
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [activeAuthors, setActiveAuthors] = useState([] as string[]);
-  const [activeDates, setActiveDates] = useState<{ startDate: string; endDate: string }>({ startDate: '', endDate: '' });
-  const [availableAuthors, setAvailableAuthors] = useState<string[]>([]);
-  const [availableCountries, setAvailableCountries] = useState<string[]>([]);
-  const [tipoAtencion, setTipoAtencion] = useState<{ name: string; value: number; color: string }[]>([]);
-  const [tipoDominio, setTipoDominio] = useState<{ name: string; value: number; color: string }[]>([]);
-  const [tipoDesign, setTipoDesign] = useState<{ name: string; value: number; color: string }[]>([]);
-  const [tipoDisease, setTipoDisease] = useState<{ name: string; value: number; color: string }[]>([]);
-  const [rows, setRows] = useState([]);
-  const [filterCountries, setFilterCountries] = useState<string[]>([]);
-  const [filteredRows, setFilteredRows] = useState([]);
-  const [numberOfActiveAuthors, setNumberOfActiveAuthors] = useState(0);
-  const [totaluniqueAuthors, setTotalUniqueAuthors] = useState(0);
-  const [numberOfActiveCountries, setNumberOfActiveCountries] = useState(0);
-  const [totaluniqueCountries, setTotalUniqueCountries] = useState(0);
-  const [totalEstudios, setTotalEstudios] = useState(0);
-  const [numerodeEnfermedades, setEnfermedades] = useState(0);
-  const [totalNumberEnfermedades, setTotalNumberEnfermedades] = useState(0);
-  // ----------------------------------
-  // Fetch initial data
-  // ----------------------------------
+  const [rows, setRows] = useState<Record<string, string>[]>([]);
+  const [filteredRows, setFilteredRows] = useState<Record<string, string>[]>([]);
 
+  // -----------------------------
+  // FILTER HANDLER
+  // -----------------------------
+  const handleFilterChange = (
+    key: FilterableKeys,
+    value: string,
+    allItems: string[]
+  ) => {
+    setFilters(prev => {
+      const activeItems = prev[key];
+
+      if (value === 'all') {
+        return initialFilters;
+      }
+
+      if (activeItems.includes(value)) {
+        return {
+          ...prev,
+          [key]: activeItems.filter(item => item !== value),
+        };
+      }
+
+      return {
+        ...prev,
+        [key]: [...activeItems, value],
+      };
+    });
+  };
+
+  // -----------------------------
+  // ENRICH DATA
+  // -----------------------------
+  const enrichRowsWithISO = async (rows: any[]) => {
+    return Promise.all(
+      rows.map(async (item) => {
+        const rawCountries = item.con || '';
+        const splitCountries = rawCountries
+          .split(';')
+          .map((c: string) => c.trim())
+          .filter(Boolean);
+
+        const isoCodes = await Promise.all(
+          splitCountries.map(countryNameToIso)
+        );
+
+        return {
+          ...item,
+          countryISO: isoCodes.filter(Boolean).join(';'),
+        };
+      })
+    );
+  };
+
+  // -----------------------------
+  // FETCH DATA
+  // -----------------------------
   useEffect(() => {
     const fetchData = async () => {
       const data = await fetchDatabase();
-      setRows(data);
-      setFilteredRows(data);
-      const countries = Array.from(new Set(data.map((item: any) => item.inv_con).flatMap((c: string) => c.split(";")).map((c: string) => c.trim()).filter(Boolean)));
-      const countriesISOS = await Promise.all(
-        countries.map((country) => countryNameToIso(country))
-      );
-      const uniqueCountriesISOS = Array.from(new Set(countriesISOS.filter(code => code)));
-      const authors = Array.from(new Set(data.map((item: any) => item.inv_cor).filter(Boolean)));
-      const allPosibleDateRanges = data.map((item: any) => item.db_tim).flatMap((d: string) => d.split(";"));
-      const allPosibleDates = allPosibleDateRanges
-      .flatMap((dateStr: string) => dateStr.split(/[-–]/))
-      .map((s: string) => s.trim());
-      const parsedDates = allPosibleDates
-      .map((dateStr: string) => parseDate(dateStr))
-      .filter((date: Date | null): date is Date => date !== null)
-      .map((date: Date) => date.toISOString().split('T')[0]);
-      const uniqueDates = Array.from(new Set(parsedDates));
-      const minDate = uniqueDates.length > 0 ? new Date(Math.min(...uniqueDates.map(dateStr => new Date(dateStr).getTime()))) : null;
-      const maxDate = uniqueDates.length > 0 ? new Date(Math.max(...uniqueDates.map(dateStr => new Date(dateStr).getTime()))) : null;
-      if (minDate && maxDate && (!activeDates.startDate || !activeDates.endDate)) {
-        setActiveDates({ startDate: minDate.toISOString().split('T')[0], endDate: maxDate.toISOString().split('T')[0] });
-      }
-      console.log("Initial date range:", minDate?.toISOString().split('T')[0], "to", maxDate?.toISOString().split('T')[0]);
-      setAvailableAuthors(authors);
-      setAvailableCountries(uniqueCountriesISOS);
-      setTotalUniqueAuthors(authors.length);
-      setTotalUniqueCountries(uniqueCountriesISOS.length);
-      setTotalEstudios(data.length);
+      const enriched = await enrichRowsWithISO(data);
+      setRows(enriched);
+      setFilteredRows(enriched);
     };
     fetchData();
   }, []);
-  useEffect(() =>
-  {   const fetchNumberTotal = async ()=>{
-      const tipoDiseaseData = await filterTableTipoDisease({filteredRows})
-      setTotalNumberEnfermedades(tipoDiseaseData.length)
 
-  };
-    fetchNumberTotal();
-  }, [rows]);
-  //----------------------------------
-  // Handlers
-  //----------------------------------
+  // -----------------------------
+  // GET FILTERABLE KEYS (SAFE)
+  // -----------------------------
+  const filterableKeys = Object.keys(columnConfig).filter(
+    key => columnConfig[key as keyof ColumnConfig].filter
+  ) as FilterableKeys[];
+
+  // -----------------------------
+  // FILTERING (NO TS ERRORS)
+  // -----------------------------
   useEffect(() => {
     const run = async () => {
-      const filtered = await filterRowsByCountry(filterCountries, rows);
-      const filteredByDate = await filterRowsByDate(activeDates, filtered);
-      const finalFiltered = await filterRowsByAuthor(activeAuthors, filteredByDate);
-      const authors = Array.from(new Set(filtered.map((item: any) => item.inv_cor).filter(Boolean)));
-      const numberOfAuthors = activeAuthors.length === 0 ? authors.length : activeAuthors.length;
-      const allPosibleDateRanges = filtered.map((item: any) => item.db_tim).flatMap((d: string) => d.split(";"));
-      const allPosibleDates = allPosibleDateRanges
-      .flatMap((dateStr: string) => dateStr.split(/[-–]/))
-      .map((s: string) => s.trim());
-      const parsedDates = allPosibleDates
-      .map((dateStr: string) => parseDate(dateStr))
-      .filter((date: Date | null): date is Date => date !== null)
-      .map((date: Date) => date.toISOString().split('T')[0]);
-      const uniqueDates = Array.from(new Set(parsedDates));
-      const minDate = uniqueDates.length > 0 ? new Date(Math.min(...uniqueDates.map(dateStr => new Date(dateStr).getTime()))) : null;
-      const maxDate = uniqueDates.length > 0 ? new Date(Math.max(...uniqueDates.map(dateStr => new Date(dateStr).getTime()))) : null;
-      if (minDate && maxDate && (!activeDates.startDate || !activeDates.endDate)) {
-        setActiveDates({ startDate: minDate.toISOString().split('T')[0], endDate: maxDate.toISOString().split('T')[0] });
+      let result = rows;
+
+      for (const key of filterableKeys) {
+        const config = columnConfig[key];
+        const values = filters[key];
+
+        if (!values.length) continue;
+
+        const field = config.field ?? key;
+
+        if (config.async) {
+          result = await filterRows(values, result, field, true);
+        } else {
+          result = filterRows(values, result, field);
+        }
       }
-      setNumberOfActiveAuthors(numberOfAuthors);
-      setNumberOfActiveCountries(filterCountries.length === 0 ? availableCountries.length : filterCountries.length);
-      setAvailableAuthors(authors);
-      setFilteredRows(finalFiltered);
-    };
-    run();
-  }, [filterCountries, rows]);
 
-  useEffect(() => {
-    const run = async () => {
-      const filtered = filterRowsByAuthor(activeAuthors, rows);
-      const filteredByDate = await filterRowsByDate(activeDates, filtered);
-      const finalFiltered = await filterRowsByCountry(filterCountries, filteredByDate);
-      const countries = Array.from(new Set(filtered.map((item: any) => item.inv_con).flatMap((c: string) => c.split(";")).map((c: string) => c.trim()).filter(Boolean)));
-      const countriesISOS = await Promise.all(
-        countries.map((country) => countryNameToIso(country))
-      );
-      const allPosibleDateRanges =  filtered.map((item: any) => item.db_tim).flatMap((d: string) => d.split(";"));
-      const allPosibleDates = allPosibleDateRanges
-      .flatMap((dateStr: string) => dateStr.split(/[-–]/))
-      .map((s: string) => s.trim());
-      const parsedDates = allPosibleDates
-      .map((dateStr: string) => parseDate(dateStr))
-      .filter((date: Date | null): date is Date => date !== null)
-      .map((date: Date) => date.toISOString().split('T')[0]);
-      const uniqueDates = Array.from(new Set(parsedDates));
-      const minDate = uniqueDates.length > 0 ? new Date(Math.min(...uniqueDates.map(dateStr => new Date(dateStr).getTime()))) : null;
-      const maxDate = uniqueDates.length > 0 ? new Date(Math.max(...uniqueDates.map(dateStr => new Date(dateStr).getTime()))) : null;
-      if (minDate && maxDate && (!activeDates.startDate || !activeDates.endDate)) {
-        setActiveDates({ startDate: minDate.toISOString().split('T')[0], endDate: maxDate.toISOString().split('T')[0] });
-      }
-      const uniqueCountriesISOS = Array.from(new Set(countriesISOS.filter(code => code)));
-      setAvailableCountries(uniqueCountriesISOS);
-      const numberOfCountries = filterCountries.length === 0 ? uniqueCountriesISOS.length : filterCountries.length;
-      setNumberOfActiveCountries(numberOfCountries);
-      setNumberOfActiveAuthors(activeAuthors.length === 0 ? availableAuthors.length : activeAuthors.length);
-      setFilteredRows(finalFiltered);
+      setFilteredRows(result);
     };
-    run();
-  }, [activeAuthors,rows]);
-  useEffect(() => {
-    const run = async () => {
-      const filtered = await filterRowsByDate(activeDates, rows);
-      const filteredByAuthor = await filterRowsByAuthor(activeAuthors, filtered);
-      const finalFiltered = await filterRowsByCountry(filterCountries, filteredByAuthor);
-      const activeAuthorsSet = Array.from(new Set(filtered.map((item: any) => item.inv_cor).filter(Boolean)));
-      setAvailableAuthors(activeAuthorsSet);
-      const countries = Array.from(new Set(filtered.map((item: any) => item.inv_con).flatMap((c: string) => c.split(";")).map((c: string) => c.trim()).filter(Boolean)));
-      const countriesISOS = await Promise.all(
-        countries.map((country) => countryNameToIso(country))
-      );  
-      const uniqueCountriesISOS = Array.from(new Set(countriesISOS.filter(code => code)));
-      setAvailableCountries(uniqueCountriesISOS);
-      const numberOfAuthors = activeAuthors.length === 0 ? activeAuthorsSet.length : activeAuthors.length;
-      setNumberOfActiveAuthors(numberOfAuthors);
-      const numberOfCountries = filterCountries.length === 0 ? uniqueCountriesISOS.length : filterCountries.length;
-      setNumberOfActiveCountries(numberOfCountries);  
-      setFilteredRows(finalFiltered);
-    };
-    run();
-  }, [activeDates,rows]);
 
-  const handleItemClick = (item: string) => {
-    setActiveItem(item);
+    run();
+  }, [rows, filters]);
+
+  // -----------------------------
+  // AGGREGATIONS CONFIG
+  // -----------------------------
+  const aggregationsConfig: Record<FilterableKeys, any> = {
+    cor_aut: { getValue: (item: any) => item.cor_aut },
+    design: { getValue: (item: any) => item.design },
+    dom: { getValue: (item: any) => item.dom, split: true },
+    dis: { getValue: (item: any) => item.dis, split: true },
+    drug: { getValue: (item: any) => item.drug, split: true },
+    con: { getValue: (item: any) => item.countryISO, split: true },
+    ds_ty: { getValue: (item: any) => item.ds_ty, split: true },
+    ds_reg: { getValue: (item: any) => item.ds_reg, split: true },
+    ds_con: { getValue: (item: any) => item.ds_con },
   };
-  useEffect(() => {
-    const run = async () => {
-      const tipoAtencionData = await filterTableTipoAtencion({filteredRows});
-      const tipoDominioData = await filterTableTipoDom({filteredRows});
-      const tipoDesignData = await filterTableDesign({filteredRows});
-      const tipoDiseaseData = await filterTableTipoDisease({filteredRows});
-      const enfermedadesNumero = tipoDiseaseData.length
 
-      setTipoDisease(tipoDiseaseData);
-      setEnfermedades(enfermedadesNumero);
-      setTipoDominio(tipoDominioData);
-      setTipoAtencion(tipoAtencionData);
-      setTipoDesign(tipoDesignData);
-    };
-    run();
+  // -----------------------------
+  // FILTER OPTIONS
+  // -----------------------------
+  const filterOptions = Object.fromEntries(
+    Object.entries(aggregationsConfig).map(([key, config]) => [
+      key,
+      (aggregateCounts({ rows, ...config }) ?? []).map(a => a.name),
+    ])
+  ) as Record<FilterableKeys, string[]>;
+
+  // -----------------------------
+  // SIDEBAR FILTERS
+  // -----------------------------
+  const sidebarFilters = Object.fromEntries(
+  Object.entries(filters)
+    .filter(([key]) =>
+      columnConfig[key as FilterableKeys]?.locationofFilter === "sidebar"
+    )
+    .map(([key, active]) => {
+      const typedKey = key as FilterableKeys;
+      const available = filterOptions[typedKey];
+
+      return [
+        key,
+        {
+          active,
+          available,
+          onChange: (value: string) =>
+            handleFilterChange(typedKey, value, available),
+        },
+      ];
+    })
+);
+  // -----------------------------
+  // TABLE FILTERS
+  // -----------------------------
+    const tableFilters = Object.fromEntries(
+  Object.entries(filters)
+    .filter(([key]) =>
+      columnConfig[key as FilterableKeys]?.locationofFilter === "table"
+    )
+    .map(([key, active]) => {
+      const typedKey = key as FilterableKeys;
+      const available = filterOptions[typedKey];
+
+      return [
+        key,
+        {
+          active,
+          available,
+          onChange: (value: string) =>
+            handleFilterChange(typedKey, value, available),
+        },
+      ];
+    })
+);
+  // -----------------------------
+  // MAP FILTERS
+  // ------------------------------
+  const mapFilters = Object.fromEntries(
+  Object.entries(filters)
+    .filter(([key]) =>
+      columnConfig[key as FilterableKeys]?.locationofFilter === "map"
+    )
+    .map(([key, active]) => {
+      const typedKey = key as FilterableKeys;
+      const available = filterOptions[typedKey];
+
+      return [
+        key,
+        {
+          active,
+          available,
+          onChange: (value: string) =>
+            handleFilterChange(typedKey, value, available),
+        },
+      ];
+    })
+);
+  // -----------------------------
+  // AGGREGATIONS UPDATE
+  // -----------------------------
+  useEffect(() => {
+    const result = Object.fromEntries(
+      Object.entries(aggregationsConfig).map(([key, config]) => [
+        key,
+        aggregateCounts({ rows: filteredRows, ...config }),
+      ])
+    ) as Record<FilterableKeys, AggregationItem[]>;
+
+    setAggregations(result);
   }, [filteredRows]);
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-  };
-  const handleAuthorFilterChange = (filter: string) => {
-    if (filter === 'all') {
-      setActiveAuthors(availableAuthors);
-    } else {
-      if (activeAuthors.length === availableAuthors.length) {
-        setActiveAuthors([filter]);
-        return;
-      }
-      // Toggle author selection
-      if (activeAuthors.includes(filter)) {
-        setActiveAuthors(activeAuthors.filter(author => author !== filter));
-        return;
-      }
-      else{
-      setActiveAuthors([...activeAuthors, filter]);
-    }
-    }
-  };
-  const handleDateFilterChange = (startDate: string, endDate: string) => {
-    setActiveDates({ startDate, endDate });
-  };
+
+  // -----------------------------
+  // UI HANDLERS
+  // -----------------------------
+  const handleItemClick = (item: string) => setActiveItem(item);
+  const handleTabChange = (tab: string) => setActiveTab(tab);
+
+  // -----------------------------
+  // RENDER
+  // -----------------------------
   return (
     <div className="flex h-svh">
-      {/* Sidebar */}
-      <Sidebar activeItem={activeItem} activeTab={activeTab} activeAuthors={activeAuthors} availableAuthors={availableAuthors} activeDates={activeDates} onDateFilterChange={handleDateFilterChange} onAuthorFilterChange={handleAuthorFilterChange} onItemClick={handleItemClick} onTabClick={handleTabChange} />
+      <Sidebar
+        navigation={{ activeItem, onTabClick: handleTabChange, onItemClick: handleItemClick }}
+        filters={sidebarFilters}
+      />
 
-      {/* Main Content */}
       <div className="h-full w-full grid grid-rows-[30%_70%]">
-        {/* Header */}
-        
-        {/* Content */}
-        <div className=" overflow-hidden">
+        <div className="overflow-hidden">
           <div className="w-full h-full">
+
             {activeTab === 'dashboard' ? (
-              <div className="h-full  sm:flex sm:gap-4 sm:overflow-y:auto sm:flex-col md:overflow-y:auto md:grid md:gap-4 lg:grid lg:grid-cols-5 lg:grid-rows-7 xl:grid xl:grid-cols-5 xl:grid-rows-7  gap-4 p-3">
-                {/* Statistics Cards */}
-                <div className="sm:flex sm:justify-center lg:col-span-5 xl:col-span-5  w-full ">
-                  <StatsCards totalEstudios={totalEstudios} numberOfActiveAuthors={numberOfActiveAuthors} totaluniqueAuthors={totaluniqueAuthors} numberOfActiveCountries={numberOfActiveCountries} totaluniqueCountries={totaluniqueCountries} totalNumberEnfermedades={totalNumberEnfermedades} numerodeEnfermedades={numerodeEnfermedades} />
+              <div className="h-full flex flex-col gap-4 p-3 overflow-hidden">
+
+                <div className="flex-shrink-0">
+                  <DashboardHeader filters={sidebarFilters} />
                 </div>
 
-                <div className="sm:flex-1 md:row-span-9 md:row-start-2 lg:col-start-1 lg:col-span-3 xl:col-start-1 xl:col-span-3">
-                  <Charts tipoAtencion={tipoAtencion} tipoDominio={tipoDominio} tipoDesign={tipoDesign} tipoDisease={tipoDisease} />
+                <div className="flex-1 overflow-y-auto">
+                  <CountrySection
+                    availableCountries={aggregations.con.map(c => c.name)}
+                    filterCountries={filters.con}
+                    filteredRows={filteredRows}
+                    setFilterCountries={handleFilterChange}
+                  />
                 </div>
 
-                <div className="sm:flex sm:flex-col lg:col-span-2 lg:row-span-7 lg:col-start-3 lg:row-start-2 xl:col-span-2 xl:row-span-9 xl:col-start-4 xl:row-start-2">
-                  <CountrySection  availableCountries={availableCountries}  filterCountries={filterCountries} filteredRows={filteredRows} setFilterCountries={setFilterCountries} />
-                </div>
               </div>
-            ) : activeTab === 'Tabla de datos' ? (
-              <div className="p-6 h-full flex flex-col overflow-y-auto text-center py-12">
-                <h2 className="sm:text-lg md:text-xl lg:text-xl xxl:text-3xl flex justify-center font-semibold text-muted-foreground">
-                  Tabla de datos
-                </h2>
-               
-                <div className="flex-1 overflow-y-auto mt-6">
-                  <AuthorsTable  filteredRows={filteredRows} />
-                </div>
-              </div>
-            ):
-            activeTab === 'acerca' ? (
+            ) : activeTab === 'acerca' ? (
               <AcercaDe />
-            ) : null
-            }
+            ) : activeTab === 'Tabla de autores' ? (
+              <div className="h-full flex flex-col gap-4 p-3 overflow-hidden">
+                <DashboardHeader filters={sidebarFilters} />
+                <AuthorsTable filteredRows={filteredRows} filters={tableFilters} />
+              </div>
+            ) : null}
+
           </div>
         </div>
       </div>

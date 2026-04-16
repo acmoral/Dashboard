@@ -10,8 +10,7 @@ export function filterRowsByAuthor(
   return rows.filter((row: any) => {
     return (
       selectedAuthors.length === 0 ||
-      selectedAuthors.includes(row.inv_cor) ||
-      selectedAuthors.some(author => row.inv_nam.split(";").includes(author))
+      selectedAuthors.includes(row.cor_aut) 
     );
   });
 }

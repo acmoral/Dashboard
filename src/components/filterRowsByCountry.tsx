@@ -11,10 +11,11 @@ export async function filterRowsByCountry(
   }
   const checks = await Promise.all(
     rows.map(async (row: any) => {
-      const rowCountries = row.inv_con.split(";").map((c: string) => c.trim());
-      const rowCountryIsos = await Promise.all(
-        rowCountries.map((country: string) => countryNameToIso(country))
-      );
+      const rowCountryIsos = row.countryISO
+        ? row.countryISO.split(";").map((c: string) => c.trim())
+        : await Promise.all(
+            (row.con || "").split(";").map((c: string) => c.trim()).filter(Boolean).map((country: string) => countryNameToIso(country))
+          );
       return rowCountryIsos.some((iso: string | null) => iso && filterCountries.includes(iso));
     })
   );
