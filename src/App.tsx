@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
-import { CountrySection } from './components/CountrySection';
+import { DashboardSection } from './components/DashboardSection';
 import { AuthorsTable } from './components/AuthorsTable';
 import { fetchDatabase } from "./components/FetchDatabase";
 import { AcercaDe } from './components/AcercaDe';
 import { countryNameToIso } from "./components/countryToiso";
 import { aggregateCounts } from './components/filterItem';
+import { calculatePercentages } from './components/calculatePercentages';
 import { filterRows } from './components/filterRows';
 import { DashboardHeader } from './components/DashboardHeader';
 import { columnConfig } from './components/configTable';
@@ -61,7 +62,10 @@ export default function App() {
       const activeItems = prev[key];
 
       if (value === 'all') {
-        return initialFilters;
+        return {
+          ...prev,
+          [key]: [],
+        };
       }
 
       if (activeItems.includes(value)) {
@@ -83,20 +87,51 @@ export default function App() {
   // -----------------------------
   const enrichRowsWithISO = async (rows: any[]) => {
     return Promise.all(
-      rows.map(async (item) => {
+      rows.map(async (item, idx) => {
         const rawCountries = item.con || '';
         const splitCountries = rawCountries
           .split(';')
           .map((c: string) => c.trim())
           .filter(Boolean);
 
+
+
         const isoCodes = await Promise.all(
-          splitCountries.map(countryNameToIso)
+          splitCountries.map(async (country) => {
+            // Handle "Multinacional"/"Multinational" as special case
+            const countryLower = country.toLowerCase();
+            if (countryLower === 'multinacional' || countryLower === 'multinational') {
+              return 'MULTINACIONAL';
+            }
+            return countryNameToIso(country);
+          })
         );
 
+        // Also convert ds_con to ISO codes
+        const rawDsCountries = item.ds_con || '';
+        const splitDsCountries = rawDsCountries
+          .split(';')
+          .map((c: string) => c.trim())
+          .filter(Boolean);
+
+        const dsIsoCodes = await Promise.all(
+          splitDsCountries.map(async (country) => {
+            // Handle "Multinacional"/"Multinational" as special case
+            const countryLower = country.toLowerCase();
+            if (countryLower === 'multinacional' || countryLower === 'multinational') {
+              return 'MULTINACIONAL';
+            }
+            return countryNameToIso(country);
+          })
+        );
+
+        const enrichedCountryISO = isoCodes.filter(Boolean).join(';');
+        const enrichedDataSourceISO = dsIsoCodes.filter(Boolean).join(';');
+        
         return {
           ...item,
-          countryISO: isoCodes.filter(Boolean).join(';'),
+          countryISO: enrichedCountryISO,
+          dataSourceCountryISO: enrichedDataSourceISO,
         };
       })
     );
@@ -135,13 +170,19 @@ export default function App() {
 
         if (!values.length) continue;
 
-        const field = config.field ?? key;
+        // For ds_con, use the enriched ISO field for filtering
+        let field = config.field ?? key;
+        if (key === 'ds_con') {
+          field = 'dataSourceCountryISO';
+        }
+
 
         if (config.async) {
           result = await filterRows(values, result, field, true);
         } else {
           result = filterRows(values, result, field);
         }
+        
       }
 
       setFilteredRows(result);
@@ -162,7 +203,7 @@ export default function App() {
     con: { getValue: (item: any) => item.countryISO, split: true },
     ds_ty: { getValue: (item: any) => item.ds_ty, split: true },
     ds_reg: { getValue: (item: any) => item.ds_reg, split: true },
-    ds_con: { getValue: (item: any) => item.ds_con },
+    ds_con: { getValue: (item: any) => item.dataSourceCountryISO, split: true },
   };
 
   // -----------------------------
@@ -176,12 +217,12 @@ export default function App() {
   ) as Record<FilterableKeys, string[]>;
 
   // -----------------------------
-  // SIDEBAR FILTERS
+  // HEADER FILTERS
   // -----------------------------
-  const sidebarFilters = Object.fromEntries(
+  const headerFilters = Object.fromEntries(
   Object.entries(filters)
     .filter(([key]) =>
-      columnConfig[key as FilterableKeys]?.locationofFilter === "sidebar"
+      columnConfig[key as FilterableKeys]?.locationofFilter === "header"
     )
     .map(([key, active]) => {
       const typedKey = key as FilterableKeys;
@@ -198,6 +239,30 @@ export default function App() {
       ];
     })
 );
+  // -----------------------------
+  // SIDEBAR FILTERS
+  // -----------------------------
+  const sidebarFilters = Object.fromEntries(
+  Object.entries(filters)
+    .filter(([key]) =>
+      columnConfig[key as FilterableKeys]?.locationofFilter === "sidebar"
+    )
+    .map(([key, active]) => {
+      const typedKey = key as FilterableKeys;
+      const available = filterOptions[typedKey];
+      
+      return [
+        key,
+        {
+          active,
+          available,
+          onChange: (value: string) =>
+            handleFilterChange(typedKey, value, available),
+        },
+      ];
+    })
+) as Record<string, FilterItem>;
+
   // -----------------------------
   // TABLE FILTERS
   // -----------------------------
@@ -244,6 +309,68 @@ export default function App() {
       ];
     })
 );
+
+  // Country counts from aggregations
+  // For filter card options - always show all countries
+  const allCountriesCounts = {
+    con: (() => {
+      const rawCounts = aggregateCounts({
+        rows: rows,
+        getValue: (item: any) => item.countryISO,
+        split: true,
+      });
+      const counts = rawCounts.map(a => ({
+        name: a.name,
+        code: a.name,
+        count: a.value,
+      }));
+      return calculatePercentages(counts);
+    })(),
+    ds_con: (() => {
+      const rawCounts = aggregateCounts({
+        rows: rows,
+        getValue: (item: any) => item.dataSourceCountryISO,
+        split: true,
+      });
+      const counts = rawCounts.map(a => ({
+        name: a.name,
+        code: a.name,
+        count: a.value,
+      }));
+      return calculatePercentages(counts);
+    })(),
+  };
+
+  // Country counts for map display - show filtered data
+  const mapCountriesCounts = {
+    con: (() => {
+      const rawCounts = aggregateCounts({
+        rows: filteredRows,
+        getValue: (item: any) => item.countryISO,
+        split: true,
+      });
+      const counts = rawCounts.map(a => ({
+        name: a.name,
+        code: a.name,
+        count: a.value,
+      }));
+      return calculatePercentages(counts);
+    })(),
+    ds_con: (() => {
+      const rawCounts = aggregateCounts({
+        rows: filteredRows,
+        getValue: (item: any) => item.dataSourceCountryISO,
+        split: true,
+      });
+      const counts = rawCounts.map(a => ({
+        name: a.name,
+        code: a.name,
+        count: a.value,
+      }));
+      return calculatePercentages(counts);
+    })(),
+  };
+
   // -----------------------------
   // AGGREGATIONS UPDATE
   // -----------------------------
@@ -282,28 +409,23 @@ export default function App() {
               <div className="h-full flex flex-col gap-4 p-3 overflow-hidden">
 
                 <div className="flex-shrink-0">
-                  <DashboardHeader filters={sidebarFilters} />
+                  <DashboardHeader filters={headerFilters} />
                 </div>
 
                 <div className="flex-1 overflow-y-auto">
-                  <CountrySection
-                    availableCountries={aggregations.con.map(c => c.name)}
-                    filterCountries={filters.con}
+                  <DashboardSection
+                    mapFilters={mapFilters}
+                    tableFilters={tableFilters}
                     filteredRows={filteredRows}
-                    setFilterCountries={handleFilterChange}
+                    countryCounts={allCountriesCounts}
+                    mapCounts={mapCountriesCounts}
                   />
                 </div>
 
               </div>
             ) : activeTab === 'acerca' ? (
               <AcercaDe />
-            ) : activeTab === 'Tabla de autores' ? (
-              <div className="h-full flex flex-col gap-4 p-3 overflow-hidden">
-                <DashboardHeader filters={sidebarFilters} />
-                <AuthorsTable filteredRows={filteredRows} filters={tableFilters} />
-              </div>
-            ) : null}
-
+            )  : null}
           </div>
         </div>
       </div>

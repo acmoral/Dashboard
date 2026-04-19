@@ -3,6 +3,8 @@ import { Card } from "./ui/card";
 import { DropDownCommon } from "./dropDownCommonComponent";
 import { ListFilter } from "lucide-react";
 import { columnConfig } from "./configTable";
+import { useState } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 
 type ColumnConfig = typeof columnConfig;
 
@@ -34,6 +36,7 @@ function getVisibleColumns(data: any[]) {
 
 export function AuthorsTable({ filteredRows, filters }: AuthorsTableProps) {
   const visibleColumns = getVisibleColumns(filteredRows);
+  const [hoveredRowIndex, setHoveredRowIndex] = useState<number | null>(null);
 
   return (
     <Card className="h-full overflow-y-auto lg:row-span-4 p-4">
@@ -81,26 +84,59 @@ export function AuthorsTable({ filteredRows, filters }: AuthorsTableProps) {
         </TableHeader>
 
         <TableBody>
-          {filteredRows.map((row: any, index: number) => (
-            <TableRow key={index}>
+          {filteredRows.map((row: any, index: number) => {
+            // Get popUp fields (popUp: true and visible: false)
+            const popUpFields = Object.entries(columnConfig)
+              .filter(([_, config]) => config.popUp && !config.visible)
+              .map(([key, config]) => ({
+                key,
+                label: config.label,
+                value: config.format ? config.format(row[key]) : row[key],
+              }));
 
-              {visibleColumns.map((key) => {
-                const config = columnConfig[key];
-
-                return (
-                  <TableCell
-                    key={key}
-                    className="text-left w-64 truncate"
+            return (
+              <Popover key={index}>
+                <PopoverTrigger asChild>
+                  <TableRow
+                    onMouseEnter={() => setHoveredRowIndex(index)}
+                    onMouseLeave={() => setHoveredRowIndex(null)}
+                    className={hoveredRowIndex === index ? "bg-accent/50" : ""}
                   >
-                    {config.format
-                      ? config.format(row[key])
-                      : row[key]}
-                  </TableCell>
-                );
-              })}
+                    {visibleColumns.map((key) => {
+                      const config = columnConfig[key];
 
-            </TableRow>
-          ))}
+                      return (
+                        <TableCell
+                          key={key}
+                          className="text-left w-64 truncate"
+                        >
+                          {config.format
+                            ? config.format(row[key])
+                            : row[key]}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                </PopoverTrigger>
+                {popUpFields.length > 0 && (
+                  <PopoverContent side="right" className="w-80">
+                    <div className="space-y-3">
+                      {popUpFields.map((field) => (
+                        <div key={field.key}>
+                          <p className="text-sm font-semibold text-muted-foreground">{field.label}</p>
+                          <p className="text-sm break-words">
+                            {Array.isArray(field.value) 
+                              ? field.value.join(", ") 
+                              : field.value}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                )}
+              </Popover>
+            );
+          })}
         </TableBody>
 
       </Table>

@@ -8,18 +8,21 @@ export const  filterRows = (
 ) => {
   if (!selected.length) return rows;
 
+  // Normalize selected values for comparison (lowercase)
+  const normalizedSelected = selected.map(s => s.toLowerCase().trim());
+
   return rows.filter((row) => {
     const raw = (row[field] || '').trim();
 
     if (!isMultiValue) {
-      return selected.includes(raw);
+      return normalizedSelected.includes(raw.toLowerCase());
     }
 
     const values = raw
       .split(';')
-      .map((v: string) => v.trim())
+      .map((v: string) => v.trim().toLowerCase())
       .filter(Boolean);
 
-    return values.some((v: string) => selected.includes(v));
+    return values.some((v: string) => normalizedSelected.includes(v));
   });
 };

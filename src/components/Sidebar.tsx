@@ -1,10 +1,8 @@
-import { Search, LayoutDashboard, Info, ListFilter, MoreHorizontal, SquareArrowOutDownRight } from "lucide-react";
-import { DropDownCommon } from "./dropDownCommonComponent";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from "./ui/dropdown-menu";
+import { Search, LayoutDashboard, Info, ListFilter, MoreHorizontal, SquareArrowOutDownRight, FilterIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import logo from '../assets/logo.png';
-import React, { useState, useEffect } from "react";
-
+import {SearchBar} from "./searchBar";
+import { columnConfig } from "./configTable";
 type FilterItem = {
   active: string[];
   available: string[];
@@ -27,30 +25,15 @@ type FilterConfig = {
   active: string[];
   onChange: (value: string) => void;
 };
-const getLabel = (key: string) => {
-  const labels: Record<string, string> = {
-    authors: 'Autores',
-    design: 'Diseños',
-    dominio: 'Dominios',
-    disease: 'Enfermedades',
-    countries: 'Países',
-    drugs: 'Medicamentos',
-    dstype: 'Tipo de base de datos',
-    dsreg: 'Administración de la base de datos',
-    dscon: 'País de la base de datos',
-  };
-
-  return labels[key] ?? key;
-};
 export function Sidebar({ navigation: { activeItem,onTabClick, onItemClick }, 
   filters }: SidebarProps) {
-  const filterConfigs: FilterConfig[] = Object.entries(filters).map(
-  ([key, filter]) => ({
+  const filterConfigs: FilterConfig[] = Object.keys(filters).map(key => ({
     key,
-    label: getLabel(key),
-    ...filter,
-  })
-);
+    label: columnConfig[key as keyof typeof columnConfig]?.label || key,
+    available: filters[key].available,
+    active: filters[key].active,
+    onChange: filters[key].onChange,
+  }));
   const isSafari = typeof window !== "undefined" && /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
 
@@ -91,11 +74,42 @@ export function Sidebar({ navigation: { activeItem,onTabClick, onItemClick },
               <Info className="w-4 h-4 mr-2" />
               Acerca de
             </Button>
-            <Button variant={activeItem === 'Tabla de autores' ? 'secondary' : 'ghost'} className="w-full justify-start" onClick={() => onButtonClick('Tabla de autores', 'Tabla de autores')}>
-              <ListFilter className="w-4 h-4 mr-2" />
-              Tabla de autores
-            </Button>
            </div>
+        </div>
+        <div className="space-y-2 mt-4">
+          <div className="items-center flex">
+            <ListFilter className="w-5 h-5 inline mr-2" />
+            <h2 className="text-lg font-semibold mb-2">Filtros de busqueda</h2>
+          </div>
+
+         {filterConfigs.map((config) => (
+        <div key={config.key} className="space-y-6">
+          <SearchBar
+            key= {config.key}
+            available={config.available}
+            active={config.active}
+            onFilterChange={config.onChange}
+            nombreVariable={config.label}
+          />
+
+          {config.active.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1 px-1">
+            {config.active.map((item) => (
+              <Button
+                key={item}
+                variant="outline"
+                size="sm"
+                className="text-xs flex items-center gap-1"
+                onClick={() => config.onChange(item)} // toggle/remove
+              >
+                {item}
+                <span className="ml-1">×</span>
+              </Button>
+            ))}
+          </div>
+        )}
+        </div>
+      ))}
         </div>
       </nav>
     </div>

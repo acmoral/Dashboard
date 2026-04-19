@@ -18,14 +18,19 @@ export function aggregateCounts<T>({
   let i = 1;
 
   const counts = rows.reduce((acc, item) => {
-    const rawValue = getValue(item) || "not reported";
+    const rawValue = getValue(item);
+    
+    // Skip items with no value instead of defaulting to "not reported"
+    if (!rawValue || rawValue.trim() === '') {
+      return acc;
+    }
 
     const values = split
-      ? rawValue.split(separator).map(v => v.trim())
+      ? rawValue.split(separator).map(v => v.trim()).filter(v => v !== '')
       : [rawValue];
 
     for (const value of values) {
-      if (!acc[value]) {
+      if (value && !acc[value]) {
         acc[value] = {
           name: value,
           value: 0,
@@ -33,7 +38,9 @@ export function aggregateCounts<T>({
         };
         i++;
       }
-      acc[value].value += 1;
+      if (value) {
+        acc[value].value += 1;
+      }
     }
 
     return acc;

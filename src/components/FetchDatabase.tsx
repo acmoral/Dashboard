@@ -3,11 +3,11 @@ export async function fetchDatabase() {
   const res = await fetch(url);
   const csvText = await res.text();
   const lines = csvText.split("\n");
-  const headers = lines[0].split(",");
+  const headers = lines[0].split(",").map(h => h.trim());
   const data = lines.slice(1).map((line) => {
     const values = line.split(",");
     return headers.reduce((obj, header, i) => {
-      obj[header] = values[i];
+      obj[header] = values[i] ? values[i].trim() : '';
       return obj;
     }, {} as Record<string, string>);
   });

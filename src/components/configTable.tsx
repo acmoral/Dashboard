@@ -1,8 +1,9 @@
-type FilterLocation = "sidebar" | "table" | "map";
+type FilterLocation = "sidebar" | "table" | "map" | "header";
 
 type ColumnConfigItem = {
   label: string;
   visible: boolean;
+  popUp?: boolean;
   filter: boolean;
   locationofFilter?: FilterLocation;
   field?: string;
@@ -18,7 +19,7 @@ export const columnConfig: Record<string, ColumnConfigItem> = {
 
   ti: { label: "Titulo del estudio", visible: false, filter: false },
 
-  ref: { label: "Reference", visible: false, filter: false },
+  ref: { label: "Reference", visible: false, popUp:true, filter: false },
 
   ref_aut: { label: "Citation", visible: false, filter: false },
 
@@ -48,42 +49,42 @@ export const columnConfig: Record<string, ColumnConfigItem> = {
     filter: true,
     locationofFilter:'map',
     field: "countryISO",
-    async: true, // 👈 único async
+    async: true, 
   },
 
   dom: {
     label: "Dominio de estudio",
-    visible: true,
+    visible: false,
     filter: true,
-    locationofFilter:'sidebar'
+    locationofFilter:'header'
   },
 
   design: {
     label: "Diseño del estudio",
     visible: true,
-    filter: true,
-    locationofFilter:'sidebar'
+    filter: true, 
+    locationofFilter:'header'
   },
 
   dis: {
     label: "Enfermedad",
     visible: true,
     filter: true,
-    locationofFilter:'table'
+    locationofFilter:'sidebar'
   },
 
   drug: {
     label: "Medicamento",
     visible: true,
     filter: true,
-    locationofFilter:'table'
+    locationofFilter:'sidebar'
   },
 
   ds_num: {
     label: "# de fuentes de datos",
     visible: true,
     filter: false,
-    locationofFilter:'sidebar'
+    locationofFilter:'header'
   },
 
   ds_sp: {
@@ -104,7 +105,7 @@ export const columnConfig: Record<string, ColumnConfigItem> = {
     label: "Tipo de fuente de datos",
     visible: true,
     filter: true,
-    locationofFilter:'sidebar',
+    locationofFilter:'header',
     format: (v: string) => v.split(";").join(", "),
   },
 
@@ -126,7 +127,7 @@ export const columnConfig: Record<string, ColumnConfigItem> = {
     label: "Tipo de administración",
     visible: true,
     filter: true,
-    locationofFilter:'sidebar',
+    locationofFilter:'header',
     format: (v: string) => v.split(";").join(", "),
   },
 
@@ -134,7 +135,8 @@ export const columnConfig: Record<string, ColumnConfigItem> = {
     label: "Pais de la fuente de datos",
     visible: true,
     filter: true,
-    locationofFilter:'sidebar',
+    locationofFilter:'map',
+    async: true,
     format: (v: string) => v.split(";").join(", "),
   },
 };
