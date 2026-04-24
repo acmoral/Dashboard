@@ -1,11 +1,7 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { Card } from "./ui/card";
-import { DropDownCommon } from "./dropDownCommonComponent";
-import { ListFilter } from "lucide-react";
 import { columnConfig } from "./configTable";
-import { useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-
+import {TableGen} from "./TableGen";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 type ColumnConfig = typeof columnConfig;
 
 type FilterableKeys = {
@@ -26,120 +22,37 @@ interface AuthorsTableProps {
 // -----------------------------
 // Visible columns
 // -----------------------------
-function getVisibleColumns(data: any[]) {
+function getVisibleColumns(data: any[], whereToShow: 'authors' | 'databases' = 'authors'): (keyof ColumnConfig)[] {
   if (data.length === 0) return [];
   const keys = Object.keys(data[0]);
   return keys.filter(
-    key => columnConfig[key as keyof ColumnConfig]?.visible
+    key => columnConfig[key as keyof ColumnConfig]?.visible === whereToShow
   ) as (keyof ColumnConfig)[];
 }
 
 export function AuthorsTable({ filteredRows, filters }: AuthorsTableProps) {
-  const visibleColumns = getVisibleColumns(filteredRows);
-  const [hoveredRowIndex, setHoveredRowIndex] = useState<number | null>(null);
+  const visibleColumnsDatabases = getVisibleColumns(filteredRows, 'databases');
+  const visibleColumnsAuthors = getVisibleColumns(filteredRows, 'authors');
 
   return (
     <Card className="h-full overflow-y-auto lg:row-span-4 p-4">
       
-      <h2 className="sm:text-lg md:text-xl lg:text-xl xxl:text-3xl text-left font-semibold text-muted-foreground">
-        Tabla de autores  
-      </h2>
+      <Tabs defaultValue="authors" className="w-full">
+        <TabsList >
+          <TabsTrigger value="authors">Authors</TabsTrigger>
+          <TabsTrigger value="databases">Databases</TabsTrigger>
+        </TabsList>
+        <TabsContent value="databases">
+          <TableGen visibleColumns={visibleColumnsDatabases} filteredRows={filteredRows} filters={filters} />
+        </TabsContent>
 
-      <Table style={{ tableLayout: 'fixed', width: '100%' }}>
-        <TableHeader>
-          <TableRow>
+        <TabsContent value="authors">
 
-            {visibleColumns.map((key) => {
-              const config = columnConfig[key];
-              const isTableFilter = config.locationofFilter === 'table'
-              return (
-                <TableHead key={key} className="w-64">
-                  
-                  {isTableFilter ? (
-                    <div className="flex items-center gap-2">
+          <TableGen visibleColumns={visibleColumnsAuthors} filteredRows={filteredRows} filters={filters} />
+        </TabsContent>
+      </Tabs>
 
-                      {/* Icon */}
-                      <ListFilter className="w-4 h-4 text-muted-foreground" />
-
-                      {/* Dropdown */}
-                      <DropDownCommon
-                        available={filters[key as FilterableKeys]?.available || []}
-                        active={filters[key as FilterableKeys]?.active || []}
-                        onFilterChange={
-                          filters[key as FilterableKeys]?.onChange || (() => {})
-                        }
-                        nombreVariable={config.label}
-                      />
-
-                    </div>
-                  ) : (
-                    <span>{config.label}</span>
-                  )}
-
-                </TableHead>
-              );
-            })}
-
-          </TableRow>
-        </TableHeader>
-
-        <TableBody>
-          {filteredRows.map((row: any, index: number) => {
-            // Get popUp fields (popUp: true and visible: false)
-            const popUpFields = Object.entries(columnConfig)
-              .filter(([_, config]) => config.popUp && !config.visible)
-              .map(([key, config]) => ({
-                key,
-                label: config.label,
-                value: config.format ? config.format(row[key]) : row[key],
-              }));
-
-            return (
-              <Popover key={index}>
-                <PopoverTrigger asChild>
-                  <TableRow
-                    onMouseEnter={() => setHoveredRowIndex(index)}
-                    onMouseLeave={() => setHoveredRowIndex(null)}
-                    className={hoveredRowIndex === index ? "bg-accent/50" : ""}
-                  >
-                    {visibleColumns.map((key) => {
-                      const config = columnConfig[key];
-
-                      return (
-                        <TableCell
-                          key={key}
-                          className="text-left w-64 truncate"
-                        >
-                          {config.format
-                            ? config.format(row[key])
-                            : row[key]}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                </PopoverTrigger>
-                {popUpFields.length > 0 && (
-                  <PopoverContent side="right" className="w-80">
-                    <div className="space-y-3">
-                      {popUpFields.map((field) => (
-                        <div key={field.key}>
-                          <p className="text-sm font-semibold text-muted-foreground">{field.label}</p>
-                          <p className="text-sm break-words">
-                            {Array.isArray(field.value) 
-                              ? field.value.join(", ") 
-                              : field.value}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                )}
-              </Popover>
-            );
-          })}
-        </TableBody>
-
-      </Table>
     </Card>
   );
 }
+

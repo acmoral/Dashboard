@@ -1,8 +1,8 @@
 type FilterLocation = "sidebar" | "table" | "map" | "header";
-
+type VisibleConfig = 'authors' | 'databases' | 'none';
 type ColumnConfigItem = {
   label: string;
-  visible: boolean;
+  visible: VisibleConfig;
   popUp?: boolean;
   filter: boolean;
   locationofFilter?: FilterLocation;
@@ -15,37 +15,37 @@ type ColumnConfigItem = {
 );
 
 export const columnConfig: Record<string, ColumnConfigItem> = {
-  id: { label: "ID", visible: false, filter: false },
+  id: { label: "ID", visible:'none', filter: false },
 
-  ti: { label: "Titulo del estudio", visible: false, filter: false },
+  ti: { label: "Paper title", visible: 'none', filter: false },
 
-  ref: { label: "Reference", visible: false, popUp:true, filter: false },
+  ref: { label: "Reference", visible: 'none', popUp:true, filter: false },
 
-  ref_aut: { label: "Citation", visible: false, filter: false },
+  ref_aut: { label: "Citation", visible: 'none', filter: false },
 
   cor_aut: {
-    label: "Autor",
-    visible: true,
+    label: "Author",
+    visible: 'authors',
     filter: true,
     locationofFilter:'table'
   },
 
   cor_mail: {
     label: "Email",
-    visible: true,
+    visible: 'authors',
     filter: false,
   },
 
   cor_afil: {
-    label: "Afiliación",
-    visible: true,
+    label: "Affiliation",
+    visible: 'authors',
     filter: false,
     format: (v: string) => v.split(";").join(", "),
   },
 
   con: {
-    label: "País del autor",
-    visible: false,
+    label: "Country of authors",
+    visible: 'none',
     filter: true,
     locationofFilter:'map',
     field: "countryISO",
@@ -53,87 +53,87 @@ export const columnConfig: Record<string, ColumnConfigItem> = {
   },
 
   dom: {
-    label: "Dominio de estudio",
-    visible: false,
+    label: "Study domain",
+    visible: 'none',
     filter: true,
     locationofFilter:'header'
   },
 
   design: {
-    label: "Diseño del estudio",
-    visible: true,
+    label: "Study design",
+    visible: 'none',
     filter: true, 
     locationofFilter:'header'
   },
 
   dis: {
-    label: "Enfermedad",
-    visible: true,
+    label: "Disease",
+    visible: 'none',
     filter: true,
     locationofFilter:'sidebar'
   },
 
   drug: {
-    label: "Medicamento",
-    visible: true,
+    label: "Drug",
+    visible: 'none',
     filter: true,
     locationofFilter:'sidebar'
   },
 
   ds_num: {
-    label: "# de fuentes de datos",
-    visible: true,
+    label: "# of data sources",
+    visible: 'databases',
     filter: false,
     locationofFilter:'header'
   },
 
   ds_sp: {
-    label: "Especificidad de las fuentes de datos",
-    visible: false,
+    label: "Data sources (ES)",
+    visible: 'databases',
     filter: false,
     format: (v: string) => v.split(";"),
   },
 
   ds_en: {
     label: "Data Sources (EN)",
-    visible: false,
+    visible: 'databases',
     filter: false,
     format: (v: string) => v.split(";").join(", "),
   },
 
   ds_ty: {
-    label: "Tipo de fuente de datos",
-    visible: true,
+    label: "Type of data source",
+    visible: 'databases',
     filter: true,
     locationofFilter:'header',
     format: (v: string) => v.split(";").join(", "),
   },
 
   ds_gr: {
-    label: "Grupo de datos",
-    visible: false,
+    label: "Data source group",
+    visible: 'databases',
     filter: false,
     format: (v: string) => v.split(";").join(", "),
   },
 
   ds_adm: {
-    label: "Nivel de administración",
-    visible: false,
+    label: "Level of administration",
+    visible: 'databases',
     filter: false,
     format: (v: string) => v.split(";").join(", "),
   },
 
   ds_reg: {
-    label: "Tipo de administración",
-    visible: true,
+    label: "Geographical coverage",
+    visible: 'databases',
     filter: true,
     locationofFilter:'header',
     format: (v: string) => v.split(";").join(", "),
   },
 
   ds_con: {
-    label: "Pais de la fuente de datos",
-    visible: true,
+    label: "Country of data source",
+    visible: 'databases',
     filter: true,
     locationofFilter:'map',
     async: true,

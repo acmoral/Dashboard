@@ -61,25 +61,25 @@ export function Sidebar({ navigation: { activeItem,onTabClick, onItemClick },
         <div className="space-y-2 border-b border-border">
           <div className="items-center flex">
             <SquareArrowOutDownRight className="w-5 h-5 inline mr-2" />
-            <h2 className="text-lg font-semibold mb-2">Navegación</h2>
+            <h2 className="text-lg font-semibold mb-2">Navigation</h2>
           </div>
 
           <div className="space-y-2">
             <Button variant={activeItem === 'dashboard' ? 'secondary' : 'ghost'} className="w-full justify-start" onClick={() => onButtonClick('dashboard', 'dashboard')}>
               <LayoutDashboard className="w-4 h-4 mr-2" />
-              Dashboard
+              Table
             </Button>
 
             <Button variant={activeItem === 'acerca' ? 'secondary' : 'ghost'} className="w-full justify-start" onClick={() => onButtonClick('acerca', 'acerca')}>
               <Info className="w-4 h-4 mr-2" />
-              Acerca de
+              About 
             </Button>
            </div>
         </div>
         <div className="space-y-2 mt-4">
           <div className="items-center flex">
             <ListFilter className="w-5 h-5 inline mr-2" />
-            <h2 className="text-lg font-semibold mb-2">Filtros de busqueda</h2>
+            <h2 className="text-lg font-semibold mb-2">Search Filters</h2>
           </div>
 
          {filterConfigs.map((config) => (
