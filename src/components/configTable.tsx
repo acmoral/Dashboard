@@ -6,6 +6,8 @@ type ColumnConfigItem = {
   popUp?: boolean;
   filter: boolean;
   locationofFilter?: FilterLocation;
+  aggregation?: {
+    split: boolean;}
   field?: string;
   async?: boolean;
   format?: (v: string) => string | string[];
@@ -27,26 +29,30 @@ export const columnConfig: Record<string, ColumnConfigItem> = {
     label: "Author",
     visible: 'authors',
     filter: true,
-    locationofFilter:'table'
+    aggregation: {split: false},
+    locationofFilter:'table',
   },
 
   cor_mail: {
     label: "Email",
     visible: 'authors',
     filter: false,
+    aggregation: {split: true}
   },
 
   cor_afil: {
     label: "Affiliation",
     visible: 'authors',
     filter: false,
+    aggregation: {split: true},
     format: (v: string) => v.split(";").join(", "),
   },
 
   con: {
     label: "Country of authors",
-    visible: 'none',
+    visible: 'authors',
     filter: true,
+    aggregation: {split: true},
     locationofFilter:'map',
     field: "countryISO",
     async: true, 
@@ -54,37 +60,44 @@ export const columnConfig: Record<string, ColumnConfigItem> = {
 
   dom: {
     label: "Study domain",
-    visible: 'none',
+    visible: 'authors',
     filter: true,
-    locationofFilter:'header'
+    aggregation: {split: true},
+    locationofFilter:'header',
+    format: (v: string) => v.split(";").join(", "),
   },
 
   design: {
     label: "Study design",
-    visible: 'none',
+    visible: 'authors',
     filter: true, 
-    locationofFilter:'header'
+    aggregation: {split: true},
+    locationofFilter:'header',
+    format: (v: string) => v.split(";").join(", "),
   },
 
   dis: {
     label: "Disease",
-    visible: 'none',
+    visible: 'authors',
     filter: true,
-    locationofFilter:'sidebar'
+    aggregation: {split: true},
+    locationofFilter:'sidebar',
+    format: (v: string) => v.split(";").join(", "),
   },
 
   drug: {
     label: "Drug",
-    visible: 'none',
+    visible: 'authors',
     filter: true,
-    locationofFilter:'sidebar'
+    aggregation: {split: true},
+    locationofFilter:'sidebar',
+    format: (v: string) => v.split(";").join(", "),
   },
 
   ds_num: {
     label: "# of data sources",
     visible: 'databases',
     filter: false,
-    locationofFilter:'header'
   },
 
   ds_sp: {
@@ -97,7 +110,8 @@ export const columnConfig: Record<string, ColumnConfigItem> = {
   ds_en: {
     label: "Data Sources (EN)",
     visible: 'databases',
-    filter: false,
+    filter: true,
+    locationofFilter:'sidebar',
     format: (v: string) => v.split(";").join(", "),
   },
 
@@ -105,21 +119,26 @@ export const columnConfig: Record<string, ColumnConfigItem> = {
     label: "Type of data source",
     visible: 'databases',
     filter: true,
-    locationofFilter:'header',
+    aggregation: {split: true},
+    locationofFilter:'sidebar',
     format: (v: string) => v.split(";").join(", "),
   },
 
   ds_gr: {
     label: "Data source group",
     visible: 'databases',
-    filter: false,
+    filter: true,
+    aggregation: {split: true},
+    locationofFilter:'header',
     format: (v: string) => v.split(";").join(", "),
   },
 
   ds_adm: {
     label: "Level of administration",
     visible: 'databases',
-    filter: false,
+    filter: true,
+    locationofFilter:'header',
+    aggregation: {split: true},
     format: (v: string) => v.split(";").join(", "),
   },
 
@@ -127,6 +146,7 @@ export const columnConfig: Record<string, ColumnConfigItem> = {
     label: "Geographical coverage",
     visible: 'databases',
     filter: true,
+    aggregation: {split: true},
     locationofFilter:'header',
     format: (v: string) => v.split(";").join(", "),
   },
@@ -135,6 +155,7 @@ export const columnConfig: Record<string, ColumnConfigItem> = {
     label: "Country of data source",
     visible: 'databases',
     filter: true,
+    aggregation: {split: true},
     locationofFilter:'map',
     async: true,
     format: (v: string) => v.split(";").join(", "),

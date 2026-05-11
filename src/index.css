@@ -1081,6 +1081,10 @@
   .h-svh {
     height: 100svh;
   }
+  .max-h-none{
+    max-height: none;
+  }
+  
 
   .max-h-\(--radix-context-menu-content-available-height\) {
     max-height: var(--radix-context-menu-content-available-height);
@@ -1097,7 +1101,12 @@
   .max-h-\[300px\] {
     max-height: 300px;
   }
-
+  .max-h-\[500px\] {
+    max-height: 500px;
+  }
+  .max-h-40{
+    max-height: calc(var(--spacing) * 40);
+  }
   .min-h-0 {
     min-height: calc(var(--spacing) * 0);
   }
@@ -1584,10 +1593,20 @@
     margin-block-end: calc(calc(var(--spacing) * 3) * calc(1 - var(--tw-space-y-reverse)));
   }
 
+  :where(.space-y-4 > :not(:last-child)) {
+    --tw-space-y-reverse: 0;
+    margin-block-start: calc(calc(var(--spacing) * 4) * var(--tw-space-y-reverse));
+    margin-block-end: calc(calc(var(--spacing) * 4) * calc(1 - var(--tw-space-y-reverse)));
+  }
   :where(.space-y-6 > :not(:last-child)) {
     --tw-space-y-reverse: 0;
     margin-block-start: calc(calc(var(--spacing) * 6) * var(--tw-space-y-reverse));
     margin-block-end: calc(calc(var(--spacing) * 6) * calc(1 - var(--tw-space-y-reverse)));
+  }
+  :where(.space-y-8 > :not(:last-child)) {
+    --tw-space-y-reverse: 0;
+    margin-block-start: calc(calc(var(--spacing) * 8) * var(--tw-space-y-reverse));
+    margin-block-end: calc(calc(var(--spacing) * 8) * calc(1 - var(--tw-space-y-reverse)));
   }
 
   :where(.space-x-1 > :not(:last-child)) {

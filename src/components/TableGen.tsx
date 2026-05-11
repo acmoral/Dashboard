@@ -4,7 +4,6 @@ import { DropDownCommon } from "./dropDownCommonComponent";
 import { ListFilter } from "lucide-react";
 import { columnConfig } from "./configTable";
 import { useState } from "react";
-import { Popover, PopoverTrigger, PopoverContent } from "./ui/popover";
 type ColumnConfig = typeof columnConfig;
 type FilterableKeys = {
   [K in keyof ColumnConfig]: ColumnConfig[K]["filter"] extends true ? K : never
@@ -62,8 +61,7 @@ export function TableGen({ visibleColumns, filteredRows, filters }: { visibleCol
               }));
 
             return (
-              <Popover key={index}>
-                <PopoverTrigger asChild>
+
                   <TableRow
                     onMouseEnter={() => setHoveredRowIndex(index)}
                     onMouseLeave={() => setHoveredRowIndex(null)}
@@ -73,35 +71,19 @@ export function TableGen({ visibleColumns, filteredRows, filters }: { visibleCol
                       const config = columnConfig[key];
 
                       return (
-                        <TableCell
-                          key={key}
-                          className="text-left w-64 truncate"
-                        >
+                       <TableCell
+                        key={key}
+                        className="text-left w-64 whitespace-normal break-words align-top"
+                      >
+                        <div className="max-h-40 overflow-y-auto">
                           {config.format
                             ? config.format(row[key])
                             : row[key]}
-                        </TableCell>
+                        </div>
+                      </TableCell>
                       );
                     })}
                   </TableRow>
-                </PopoverTrigger>
-                {popUpFields.length > 0 && (
-                  <PopoverContent side="right" className="w-80">
-                    <div className="space-y-3">
-                      {popUpFields.map((field) => (
-                        <div key={field.key}>
-                          <p className="text-sm font-semibold text-muted-foreground">{field.label}</p>
-                          <p className="text-sm break-words">
-                            {Array.isArray(field.value) 
-                              ? field.value.join(", ") 
-                              : field.value}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                )}
-              </Popover>
             );
           })}
         </TableBody>

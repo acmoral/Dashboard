@@ -22,13 +22,22 @@ type CountryType = {
 };
 
 interface CountrySectionProps {
-  filters: {
+  visibleState: string;
+  setVisibleState: (state: string) => void;
+  mapFilters: {
     con?: {
       active: string[];
       available: string[];
       onChange: (value: string) => void;
     };
     ds_con?: {
+      active: string[];
+      available: string[];
+      onChange: (value: string) => void;
+    };
+  };
+  tableFilters: {
+    [K in FilterableKeys]?: {
       active: string[];
       available: string[];
       onChange: (value: string) => void;
@@ -46,6 +55,8 @@ interface CountrySectionProps {
 }
 
 export function DashboardSection({
+  visibleState,
+  setVisibleState,
   mapFilters,
   tableFilters,
   filteredRows,
@@ -130,7 +141,7 @@ export function DashboardSection({
       {/* Map Section */}
 
         <div className="lg:col-span-3 rounded-md overflow-hidden">
-          <AuthorsTable filteredRows={filteredRows} filters={tableFilters} />
+          <AuthorsTable visibleState={visibleState} setVisibleState={setVisibleState} filteredRows={filteredRows} filters={tableFilters} />
         </div>
 
       {/* Filter Cards Container */}

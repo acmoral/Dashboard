@@ -1,6 +1,7 @@
 import { ListFilter } from "lucide-react";
 import { DropDownCommon } from "./dropDownCommonComponent";
 import { columnConfig } from "./configTable";
+import { Button } from "./ui/button";
 
 type FilterItem = {
   active: string[];
@@ -15,10 +16,11 @@ type FilterableKeys = {
 }[keyof ColumnConfig];
 
 interface DashboardHeaderProps {
+  onClearFilters: () => void;
   filters: Record<FilterableKeys, FilterItem>;
 }
 
-export function DashboardHeader({ filters }: DashboardHeaderProps) {
+export function DashboardHeader({onClearFilters, filters }: DashboardHeaderProps) {
 
   const filterConfigs = Object.entries(filters).map(([key, filter]) => {
     const typedKey = key as FilterableKeys;
@@ -42,6 +44,9 @@ export function DashboardHeader({ filters }: DashboardHeaderProps) {
 
         {/* Filters */}
         <div className="flex flex-wrap justify-around items-center gap-4">
+          <Button variant="outline" onClick={onClearFilters} className="mb-2">
+            Clear Filters 
+          </Button>
           {filterConfigs.map(filter => (
             <div key={filter.key} className="flex flex-col w-50">
 

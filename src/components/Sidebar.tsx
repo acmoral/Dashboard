@@ -1,4 +1,4 @@
-import { Search, LayoutDashboard, Info, ListFilter, MoreHorizontal, SquareArrowOutDownRight, FilterIcon } from "lucide-react";
+import { Search, LayoutDashboard, Info, SquareArrowOutDownRight} from "lucide-react";
 import { Button } from "./ui/button";
 import logo from '../assets/logo.png';
 import {SearchBar} from "./searchBar";
@@ -49,7 +49,7 @@ export function Sidebar({ navigation: { activeItem,onTabClick, onItemClick },
           <div className="w-full rounded flex items-center justify-center">
             <img src={logo} alt="Logo" className="w-full" />
           </div>
-          <div className="mt-2 space-y-0.5 bg-gray-100 p-2 rounded">
+          <div className="mt-2 space-y-1 bg-gray-100 p-2 rounded">
             <div className="text-muted-foreground text-center text-sm">CENTRO DE PENSAMIENTO</div>
             <div className="font-medium text-center text-sm">MEDICAMENTOS</div>
             <div className="text-muted-foreground text-center text-sm">INFORMACIÓN Y PODER</div>
@@ -58,13 +58,13 @@ export function Sidebar({ navigation: { activeItem,onTabClick, onItemClick },
       </div>
 
       <nav className="flex-1 p-4">
-        <div className="space-y-2 border-b border-border">
+        <div className="space-y-3 border-b border-border">
           <div className="items-center flex">
             <SquareArrowOutDownRight className="w-5 h-5 inline mr-2" />
             <h2 className="text-lg font-semibold mb-2">Navigation</h2>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Button variant={activeItem === 'dashboard' ? 'secondary' : 'ghost'} className="w-full justify-start" onClick={() => onButtonClick('dashboard', 'dashboard')}>
               <LayoutDashboard className="w-4 h-4 mr-2" />
               Table
@@ -76,14 +76,14 @@ export function Sidebar({ navigation: { activeItem,onTabClick, onItemClick },
             </Button>
            </div>
         </div>
-        <div className="space-y-2 mt-4">
+        <div className="space-y-4 mt-4">
           <div className="items-center flex">
-            <ListFilter className="w-5 h-5 inline mr-2" />
-            <h2 className="text-lg font-semibold mb-2">Search Filters</h2>
+            <Search className="w-5 h-5 inline mr-2" />
+            <h2 className="text-lg font-semibold mb-2">Search variables</h2>
           </div>
 
          {filterConfigs.map((config) => (
-        <div key={config.key} className="space-y-6">
+        <div key={config.key} className="space-y-4">
           <SearchBar
             key= {config.key}
             available={config.available}

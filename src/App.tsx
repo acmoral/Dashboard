@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { DashboardSection } from './components/DashboardSection';
 import { AuthorsTable } from './components/AuthorsTable';
@@ -49,7 +49,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [rows, setRows] = useState<Record<string, string>[]>([]);
   const [filteredRows, setFilteredRows] = useState<Record<string, string>[]>([]);
-
+  const [visibleState, setVisibleState] = useState<string>('authors');
   // -----------------------------
   // FILTER HANDLER
   // -----------------------------
@@ -153,9 +153,14 @@ export default function App() {
   // -----------------------------
   // GET FILTERABLE KEYS (SAFE)
   // -----------------------------
-  const filterableKeys = Object.keys(columnConfig).filter(
-    key => columnConfig[key as keyof ColumnConfig].filter
-  ) as FilterableKeys[];
+  const filterableKeys = Object.keys(columnConfig).filter((key) => {
+  const config = columnConfig[key as keyof ColumnConfig];
+
+    return (
+      config.filter &&
+      config.visible === visibleState
+    );
+  }) as FilterableKeys[];
 
   // -----------------------------
   // FILTERING (NO TS ERRORS)
@@ -180,7 +185,7 @@ export default function App() {
         if (config.async) {
           result = await filterRows(values, result, field, true);
         } else {
-          result = filterRows(values, result, field);
+          result = filterRows(values, result, field,true);
         }
         
       }
@@ -194,17 +199,21 @@ export default function App() {
   // -----------------------------
   // AGGREGATIONS CONFIG
   // -----------------------------
-  const aggregationsConfig: Record<FilterableKeys, any> = {
-    cor_aut: { getValue: (item: any) => item.cor_aut },
-    design: { getValue: (item: any) => item.design },
-    dom: { getValue: (item: any) => item.dom, split: true },
-    dis: { getValue: (item: any) => item.dis, split: true },
-    drug: { getValue: (item: any) => item.drug, split: true },
-    con: { getValue: (item: any) => item.countryISO, split: true },
-    ds_ty: { getValue: (item: any) => item.ds_ty, split: true },
-    ds_reg: { getValue: (item: any) => item.ds_reg, split: true },
-    ds_con: { getValue: (item: any) => item.dataSourceCountryISO, split: true },
-  };
+  const aggregationsConfig = Object.fromEntries(
+  Object.entries(columnConfig)
+    .filter(([_, config]) => config.filter)
+    .map(([key, config]) => {
+      const field = config.field ?? key;
+
+      return [
+        key,
+        {
+          getValue: (item: any) => item[field],
+          split: config.aggregation?.split ?? false,
+        },
+      ];
+    })
+) as Record<FilterableKeys, any>;
 
   // -----------------------------
   // FILTER OPTIONS
@@ -215,103 +224,42 @@ export default function App() {
       (aggregateCounts({ rows, ...config }) ?? []).map(a => a.name),
     ])
   ) as Record<FilterableKeys, string[]>;
+  const buildFiltersByLocation = (location: string) =>
+  Object.fromEntries(
+    Object.entries(filters)
+      .filter(([key]) => {
+        const config = columnConfig[key as FilterableKeys];
+        return (
+          config?.locationofFilter === location &&
+          config?.visible === visibleState
+        );
+      })
+      .map(([key, active]) => {
+        const typedKey = key as FilterableKeys;
+        const available = filterOptions[typedKey];
 
+        return [
+          key,
+          {
+            active,
+            available,
+            onChange: (value: string) =>
+              handleFilterChange(typedKey, value, available),
+          },
+        ];
+      })
+  );
   // -----------------------------
-  // HEADER FILTERS
+  // FILTERS BY LOCATION
   // -----------------------------
-  const headerFilters = Object.fromEntries(
-  Object.entries(filters)
-    .filter(([key]) =>
-      columnConfig[key as FilterableKeys]?.locationofFilter === "header"
-    )
-    .map(([key, active]) => {
-      const typedKey = key as FilterableKeys;
-      const available = filterOptions[typedKey];
+  const headerFilters = buildFiltersByLocation('header');
 
-      return [
-        key,
-        {
-          active,
-          available,
-          onChange: (value: string) =>
-            handleFilterChange(typedKey, value, available),
-        },
-      ];
-    })
-);
-  // -----------------------------
-  // SIDEBAR FILTERS
-  // -----------------------------
-  const sidebarFilters = Object.fromEntries(
-  Object.entries(filters)
-    .filter(([key]) =>
-      columnConfig[key as FilterableKeys]?.locationofFilter === "sidebar"
-    )
-    .map(([key, active]) => {
-      const typedKey = key as FilterableKeys;
-      const available = filterOptions[typedKey];
-      
-      return [
-        key,
-        {
-          active,
-          available,
-          onChange: (value: string) =>
-            handleFilterChange(typedKey, value, available),
-        },
-      ];
-    })
-) as Record<string, FilterItem>;
+  const sidebarFilters = buildFiltersByLocation('sidebar');
 
-  // -----------------------------
-  // TABLE FILTERS
-  // -----------------------------
-    const tableFilters = Object.fromEntries(
-  Object.entries(filters)
-    .filter(([key]) =>
-      columnConfig[key as FilterableKeys]?.locationofFilter === "table"
-    )
-    .map(([key, active]) => {
-      const typedKey = key as FilterableKeys;
-      const available = filterOptions[typedKey];
+  const tableFilters = buildFiltersByLocation('table');
 
-      return [
-        key,
-        {
-          active,
-          available,
-          onChange: (value: string) =>
-            handleFilterChange(typedKey, value, available),
-        },
-      ];
-    })
-);
-  // -----------------------------
-  // MAP FILTERS
-  // ------------------------------
-  const mapFilters = Object.fromEntries(
-  Object.entries(filters)
-    .filter(([key]) =>
-      columnConfig[key as FilterableKeys]?.locationofFilter === "map"
-    )
-    .map(([key, active]) => {
-      const typedKey = key as FilterableKeys;
-      const available = filterOptions[typedKey];
-
-      return [
-        key,
-        {
-          active,
-          available,
-          onChange: (value: string) =>
-            handleFilterChange(typedKey, value, available),
-        },
-      ];
-    })
-);
-
+  const mapFilters = buildFiltersByLocation('map');
   // Country counts from aggregations
-  // For filter card options - always show all countries
   const allCountriesCounts = {
     con: (() => {
       const rawCounts = aggregateCounts({
@@ -390,7 +338,9 @@ export default function App() {
   // -----------------------------
   const handleItemClick = (item: string) => setActiveItem(item);
   const handleTabChange = (tab: string) => setActiveTab(tab);
-
+  const handleClearFilters = () => {
+    setFilters(initialFilters);
+  };
   // -----------------------------
   // RENDER
   // -----------------------------
@@ -409,11 +359,13 @@ export default function App() {
               <div className="h-full flex flex-col gap-4 p-3 overflow-hidden">
 
                 <div className="flex-shrink-0">
-                  <DashboardHeader filters={headerFilters} />
+                  <DashboardHeader onClearFilters={handleClearFilters} filters={headerFilters} />
                 </div>
 
                 <div className="flex-1 overflow-y-auto">
                   <DashboardSection
+                    visibleState={visibleState}
+                    setVisibleState={setVisibleState}
                     mapFilters={mapFilters}
                     tableFilters={tableFilters}
                     filteredRows={filteredRows}

@@ -2,6 +2,7 @@ import { Card } from "./ui/card";
 import { columnConfig } from "./configTable";
 import {TableGen} from "./TableGen";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
+import groupByAuthor from "./groupByAuthor";
 type ColumnConfig = typeof columnConfig;
 
 type FilterableKeys = {
@@ -15,6 +16,8 @@ type FilterItem = {
 };
 
 interface AuthorsTableProps {
+  visibleState: string;
+  setVisibleState: (state: string) => void;
   filteredRows: any[];
   filters: Record<FilterableKeys, FilterItem>;
 }
@@ -30,28 +33,51 @@ function getVisibleColumns(data: any[], whereToShow: 'authors' | 'databases' = '
   ) as (keyof ColumnConfig)[];
 }
 
-export function AuthorsTable({ filteredRows, filters }: AuthorsTableProps) {
+export function AuthorsTable({
+  visibleState,
+  setVisibleState,
+  filteredRows,
+  filters
+}: AuthorsTableProps) {
+
   const visibleColumnsDatabases = getVisibleColumns(filteredRows, 'databases');
   const visibleColumnsAuthors = getVisibleColumns(filteredRows, 'authors');
 
+  const handleTabChange = (value: string) => {
+    setVisibleState(value); // "authors" or "databases"
+  };
+  const displayedRows =
+  visibleState === "authors"
+    ? groupByAuthor(filteredRows)
+    : filteredRows;
   return (
     <Card className="h-full overflow-y-auto lg:row-span-4 p-4">
-      
-      <Tabs defaultValue="authors" className="w-full">
-        <TabsList >
+      <Tabs 
+        value={visibleState} 
+        onValueChange={handleTabChange}
+        className="w-full"
+      >
+        <TabsList>
           <TabsTrigger value="authors">Authors</TabsTrigger>
           <TabsTrigger value="databases">Databases</TabsTrigger>
         </TabsList>
+
         <TabsContent value="databases">
-          <TableGen visibleColumns={visibleColumnsDatabases} filteredRows={filteredRows} filters={filters} />
+          <TableGen 
+            visibleColumns={visibleColumnsDatabases} 
+            filteredRows={filteredRows} 
+            filters={filters} 
+          />
         </TabsContent>
 
         <TabsContent value="authors">
-
-          <TableGen visibleColumns={visibleColumnsAuthors} filteredRows={filteredRows} filters={filters} />
+          <TableGen 
+            visibleColumns={visibleColumnsAuthors} 
+            filteredRows={displayedRows} 
+            filters={filters} 
+          />
         </TabsContent>
       </Tabs>
-
     </Card>
   );
 }

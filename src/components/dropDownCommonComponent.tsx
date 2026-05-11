@@ -20,7 +20,7 @@ export function DropDownCommon({ available, active, onFilterChange, nombreVariab
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent align="start" className="w-full max-w-60 overflow-auto text-ellipsis whitespace-nowrap text-left text-sm font-normal">
-                  <DropdownMenuCheckboxItem checked={active.length === available.length} onClick={() => onFilterChange('all')} className={active.length === available.length ? "bg-gray-100 font-normal" : "font-normal"}>Sin filtro</DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked={active.length === available.length} onClick={() => onFilterChange('all')} className={active.length === available.length ? "bg-gray-100 font-normal" : "font-normal"}>None</DropdownMenuCheckboxItem>
                   {available.map((item) => (
                     <DropdownMenuCheckboxItem key={item} checked={active.includes(item)} onClick={() => onFilterChange(item)} className={active.includes(item) && active.length < available.length ? "bg-gray-100 font-normal" : "font-normal"}>
                       {item}
