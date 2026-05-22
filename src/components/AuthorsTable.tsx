@@ -3,6 +3,7 @@ import { columnConfig } from "./configTable";
 import {TableGen} from "./TableGen";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 import groupByAuthor from "./groupByAuthor";
+import groupByRowDatabases from "./groupByRowDatabases";
 type ColumnConfig = typeof columnConfig;
 
 type FilterableKeys = {
@@ -49,32 +50,36 @@ export function AuthorsTable({
   const displayedRows =
   visibleState === "authors"
     ? groupByAuthor(filteredRows)
-    : filteredRows;
+    : groupByRowDatabases(filteredRows);
   return (
-    <Card className="h-full overflow-y-auto lg:row-span-4 p-4">
+    <Card className="h-full overflow-hidden lg:row-span-4 p-6">
       <Tabs 
         value={visibleState} 
         onValueChange={handleTabChange}
-        className="w-full"
+        className="w-full h-full"
       >
-        <TabsList>
-          <TabsTrigger value="authors">Authors</TabsTrigger>
-          <TabsTrigger value="databases">Databases</TabsTrigger>
-        </TabsList>
+        <div className="sticky top-4 z-30 bg-background py-4">
+          <TabsList>
+            <TabsTrigger value="authors">Authors</TabsTrigger>
+            <TabsTrigger value="databases">Databases</TabsTrigger>
+          </TabsList>
+        </div>
 
-        <TabsContent value="databases">
+        <TabsContent value="databases" className="flex-1 min-h-0 overflow-hidden">
           <TableGen 
             visibleColumns={visibleColumnsDatabases} 
-            filteredRows={filteredRows} 
+            filteredRows={displayedRows} 
             filters={filters} 
+            tableType="databases"
           />
         </TabsContent>
 
-        <TabsContent value="authors">
+        <TabsContent value="authors" className="flex-1 min-h-0 overflow-hidden">
           <TableGen 
             visibleColumns={visibleColumnsAuthors} 
             filteredRows={displayedRows} 
             filters={filters} 
+            tableType="authors"
           />
         </TabsContent>
       </Tabs>

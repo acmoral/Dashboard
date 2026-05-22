@@ -1,5 +1,3 @@
-let MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
-
 // ISO to country name mapping for reverse lookup
 const ISO_TO_COUNTRY: Record<string, string> = {
   "MULTINACIONAL": "Multinacional",
@@ -38,17 +36,12 @@ const ISO_TO_COUNTRY: Record<string, string> = {
   "VU": "Vanuatu", "PF": "French Polynesia", "GU": "Guam", "VI": "US Virgin Islands",
   "AS": "American Samoa", "MP": "Northern Mariana Islands", "PR": "Puerto Rico",
 };
+const COUNTRY_TO_ISO: Record<string, string> = Object.fromEntries(
+  Object.entries(ISO_TO_COUNTRY).map(([iso, name]) => [name.toUpperCase(), iso])
+);
 
-export async function countryNameToIso(name) {
-    const resp = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(name)}.json?types=country&access_token=${MAPBOX_ACCESS_TOKEN}`);
-    const data = await resp.json();
-    if (data.features && data.features.length > 0) {
-      const feat = data.features[0];
-      // sometimes in feat.properties or feat.context you'll find iso codes
-      // or feat.properties.iso_3166_1, etc.
-      return feat.properties.short_code.toUpperCase() || null;
-    }
-    return null;
+export function countryNameToIso(name: string): string | null {
+  return COUNTRY_TO_ISO[name.toUpperCase()] || null;
 }
 
 export function isoToCountryName(isoCode: string): string | null {

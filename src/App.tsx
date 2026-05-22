@@ -22,12 +22,6 @@ export default function App() {
     [K in keyof ColumnConfig]: ColumnConfig[K]["filter"] extends true ? K : never
   }[keyof ColumnConfig];
 
-  type AggregationItem = {
-    name: string;
-    value: number;
-    color: string;
-  };
-
   // -----------------------------
   // INITIAL STATE
   // -----------------------------
@@ -37,14 +31,7 @@ export default function App() {
       .map(([key]) => [key, [] as string[]])
   ) as Record<FilterableKeys, string[]>;
 
-  const initialAggregations = Object.fromEntries(
-    Object.entries(columnConfig)
-      .filter(([_, config]) => config.filter)
-      .map(([key]) => [key, [] as AggregationItem[]])
-  ) as Record<FilterableKeys, AggregationItem[]>;
-
   const [filters, setFilters] = useState(initialFilters);
-  const [aggregations, setAggregations] = useState(initialAggregations);
   const [activeItem, setActiveItem] = useState('dashboard');
   const [activeTab, setActiveTab] = useState('dashboard');
   const [rows, setRows] = useState<Record<string, string>[]>([]);
@@ -151,7 +138,7 @@ export default function App() {
   }, []);
 
   // -----------------------------
-  // GET FILTERABLE KEYS (SAFE)
+  // GET FILTERABLE KEYS 
   // -----------------------------
   const filterableKeys = Object.keys(columnConfig).filter((key) => {
   const config = columnConfig[key as keyof ColumnConfig];
@@ -163,7 +150,7 @@ export default function App() {
   }) as FilterableKeys[];
 
   // -----------------------------
-  // FILTERING (NO TS ERRORS)
+  // FILTERING 
   // -----------------------------
   useEffect(() => {
     const run = async () => {
@@ -319,19 +306,6 @@ export default function App() {
     })(),
   };
 
-  // -----------------------------
-  // AGGREGATIONS UPDATE
-  // -----------------------------
-  useEffect(() => {
-    const result = Object.fromEntries(
-      Object.entries(aggregationsConfig).map(([key, config]) => [
-        key,
-        aggregateCounts({ rows: filteredRows, ...config }),
-      ])
-    ) as Record<FilterableKeys, AggregationItem[]>;
-
-    setAggregations(result);
-  }, [filteredRows]);
 
   // -----------------------------
   // UI HANDLERS

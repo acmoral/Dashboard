@@ -75,7 +75,7 @@ export function SearchBar({ available, active, onFilterChange, nombreVariable }:
       <Input
         type="text"
         data-slot="input"
-        placeholder={`Buscar ${nombreVariable}...`}
+        placeholder={`${nombreVariable}`}
         className="pr-10"
         value={inputValue}
         onChange={handleInputChange}

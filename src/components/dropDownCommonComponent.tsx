@@ -1,6 +1,6 @@
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, ChevronDown } from "lucide-react";
 import React from "react";
 
 interface DropDownCommonProps {
@@ -15,7 +15,7 @@ export function DropDownCommon({ available, active, onFilterChange, nombreVariab
                 <DropdownMenuTrigger asChild>
                   <Button type="button" variant="outline" className="w-full text-sm bg-input-background border-0 whitespace-normal overflow-hidden text-ellipsis text-left justify-between">
                     {active.length === available.length || active.length === 0 ? nombreVariable : active[active.length - 1]}
-                    <MoreHorizontal className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <ChevronDown className="relative right-1 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   </Button>
                 </DropdownMenuTrigger>
 

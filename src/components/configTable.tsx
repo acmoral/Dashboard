@@ -96,7 +96,7 @@ export const columnConfig: Record<string, ColumnConfigItem> = {
 
   ds_num: {
     label: "# of data sources",
-    visible: 'databases',
+    visible: 'none',
     filter: false,
   },
 

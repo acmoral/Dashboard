@@ -75,12 +75,14 @@ export function DashboardSection({
     if (!filter) return null;
 
     const counts = countryCounts[filterKey];
+    const totalCount = counts.reduce((sum, country) => sum + country.count, 0);
     
     // Display countries from counts, convert ISO codes to country names
     const displayCountries = counts.map(country => ({
       name: isoToCountryName(country.code) || country.code,
       code: country.code,
       count: country.count,
+      percentage: totalCount ? country.count / totalCount : 0,
     }));
 
     return (
@@ -124,9 +126,20 @@ export function DashboardSection({
                 <span className="text-sm font-medium">{country.name}</span>
               </div>
 
-              <span className="text-sm text-muted-foreground">
-                {country.count}
-              </span>
+              <div className="flex flex-col gap-2 w-full items-end">
+                <div className="h-2 w-20  bg-slate-200 overflow-hidden">
+                  <div
+                    className="h-full bg-secondary justify-self-end rounded-full"
+                    style={{
+                      width: `${(country.percentage ?? 0) * 100}%`,
+                    }}
+                  />
+                </div>
+
+                <span className="text-xs text-muted-foreground">
+                  {Math.round((country.percentage ?? 0) * 100)}%
+                </span>
+              </div>
             </div>
           ))}
 

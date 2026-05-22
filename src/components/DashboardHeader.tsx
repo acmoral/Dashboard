@@ -33,20 +33,18 @@ export function DashboardHeader({onClearFilters, filters }: DashboardHeaderProps
   });
 
   return (
-    <div className="bg-white border-b border-border">
+    <div className="bg-gray-50 p-4 rounded border-b border-border">
       <div className="p-4">
 
         {/* Header */}
         <div className="flex items-center gap-2 mb-4">
           <ListFilter className="w-5 h-5" />
-          <h2 className="text-lg font-semibold">Filtros</h2>
+          <h2 className="text-lg font-semibold">Filters</h2>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-wrap justify-around items-center gap-4">
-          <Button variant="outline" onClick={onClearFilters} className="mb-2">
-            Clear Filters 
-          </Button>
+        <div className="flex flex-wrap justify-start items-center gap-4 ">
+         
           {filterConfigs.map(filter => (
             <div key={filter.key} className="flex flex-col w-50">
 
@@ -61,8 +59,11 @@ export function DashboardHeader({onClearFilters, filters }: DashboardHeaderProps
 
             </div>
           ))}
+          <Button variant="outline" onClick={onClearFilters} className="mb-2">
+            Clear Filters 
+          </Button>
         </div>
-
+           
       </div>
     </div>
   );
