@@ -1,5 +1,5 @@
 type FilterLocation = "sidebar" | "table" | "map" | "header";
-type VisibleConfig = 'authors' | 'databases' | 'none';
+type VisibleConfig = 'authors' | 'databases' | 'none' | 'both';
 type ColumnConfigItem = {
   label: string;
   visible: VisibleConfig;
@@ -18,7 +18,7 @@ type ColumnConfigItem = {
 
 export const columnConfig: Record<string, ColumnConfigItem> = {
   id: { label: "ID", visible:'none', filter: false },
-
+  cit : { label: "Citation", visible: 'none', filter: false },
   ti: { label: "Paper title", visible: 'none', filter: false },
 
   ref: { label: "Reference", visible: 'none', popUp:true, filter: false },
@@ -76,23 +76,6 @@ export const columnConfig: Record<string, ColumnConfigItem> = {
     format: (v: string) => v.split(";").join(", "),
   },
 
-  dis: {
-    label: "Disease",
-    visible: 'authors',
-    filter: true,
-    aggregation: {split: true},
-    locationofFilter:'sidebar',
-    format: (v: string) => v.split(";").join(", "),
-  },
-
-  drug: {
-    label: "Drug",
-    visible: 'authors',
-    filter: true,
-    aggregation: {split: true},
-    locationofFilter:'sidebar',
-    format: (v: string) => v.split(";").join(", "),
-  },
 
   ds_num: {
     label: "# of data sources",
@@ -102,16 +85,15 @@ export const columnConfig: Record<string, ColumnConfigItem> = {
 
   ds_sp: {
     label: "Data sources (ES)",
-    visible: 'databases',
+    visible: 'none',
     filter: false,
     format: (v: string) => v.split(";"),
   },
 
   ds_en: {
-    label: "Data Sources (EN)",
+    label: "Data Source",
     visible: 'databases',
-    filter: true,
-    locationofFilter:'sidebar',
+    filter: false,
     format: (v: string) => v.split(";").join(", "),
   },
 
@@ -120,7 +102,7 @@ export const columnConfig: Record<string, ColumnConfigItem> = {
     visible: 'databases',
     filter: true,
     aggregation: {split: true},
-    locationofFilter:'sidebar',
+    locationofFilter:'header',
     format: (v: string) => v.split(";").join(", "),
   },
 
@@ -134,16 +116,15 @@ export const columnConfig: Record<string, ColumnConfigItem> = {
   },
 
   ds_adm: {
-    label: "Level of administration",
+    label: "Administrator",
     visible: 'databases',
-    filter: true,
-    locationofFilter:'header',
+    filter: false,
     aggregation: {split: true},
     format: (v: string) => v.split(";").join(", "),
   },
 
   ds_reg: {
-    label: "Geographical coverage",
+    label: "Ownership",
     visible: 'databases',
     filter: true,
     aggregation: {split: true},
@@ -158,6 +139,23 @@ export const columnConfig: Record<string, ColumnConfigItem> = {
     aggregation: {split: true},
     locationofFilter:'map',
     async: true,
+    format: (v: string) => v.split(";").join(", "),
+  },
+   dis: {
+    label: "Disease",
+    visible: 'both', 
+    filter: true,
+    aggregation: {split: true},
+    locationofFilter:'sidebar',
+    format: (v: string) => v.split(";").join(", "),
+  },
+
+  drug: {
+    label: "Drug",
+    visible: 'both',
+    filter: true,
+    aggregation: {split: true},
+    locationofFilter:'sidebar',
     format: (v: string) => v.split(";").join(", "),
   },
 };

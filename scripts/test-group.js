@@ -1,47 +1,47 @@
-const splitValues = (value: any) =>
+const normalizeValues = (value) =>
   value
     .toString()
     .split(/[,;]+/)
-    .map((item: string) => item.trim())
+    .map((item) => item.trim())
     .filter(Boolean);
 
-const groupByRowDatabases = (rows: Record<string, any>[]) => {
-  const groups = new Map<string, Record<string, any>[]>();
+const dedupeValues = (values) => {
+  const seen = new Map();
+
+  values.forEach((item) => {
+    const lower = item.toLowerCase();
+    if (!seen.has(lower)) {
+      seen.set(lower, item);
+    }
+  });
+
+  return Array.from(seen.values());
+};
+
+const groupByRowDatabases = (rows) => {
+  const groups = new Map();
 
   rows.forEach((row) => {
     const key = `${row.ti}||${row.ref}`;
     if (!groups.has(key)) groups.set(key, []);
-    groups.get(key)!.push(row);
+    groups.get(key).push(row);
   });
 
-  const result: Record<string, any>[] = [];
+  const result = [];
 
   groups.forEach((groupRows) => {
-    const collectJoined = (k: string) =>
+    const collectJoined = (k) =>
       groupRows
         .map((r) => (r[k] == null ? "" : r[k]))
         .filter(Boolean)
         .join("; ");
 
-    const collectValuesFromRows = (key: string) => {
-      const out: string[] = [];
-
-      for (const r of groupRows) {
-        const raw = r[key];
-        if (raw == null || raw === "") continue;
-        const parts = splitValues(raw);
-        for (const p of parts) out.push(p);
-      }
-
-      return out;
-    };
-
-    const dsValues = collectValuesFromRows("ds_en");
+    const dsJoined = collectJoined("ds_en");
+    const dsValues = dedupeValues(normalizeValues(dsJoined));
     const N = Math.max(1, dsValues.length);
 
-    // Determine source row index for each ds value to preserve order
     const perRowDs = groupRows.map((r) =>
-      r.ds_en == null || r.ds_en === "" ? [] : splitValues(r.ds_en)
+      r.ds_en == null || r.ds_en === "" ? [] : dedupeValues(normalizeValues(r.ds_en))
     );
 
     const sourceIndexByDs = dsValues.map((val) => {
@@ -53,9 +53,9 @@ const groupByRowDatabases = (rows: Record<string, any>[]) => {
     const cols = Array.from(new Set(groupRows.flatMap((r) => Object.keys(r))));
 
     for (let idx = 0; idx < N; idx++) {
-      const i = idx; // keep legacy name for selection logic
+      const i = idx;
       const sourceRowIndex = sourceIndexByDs[idx] ?? 0;
-      const newRow: Record<string, any> = {};
+      const newRow = {};
 
       cols.forEach((k) => {
         if (k === "ti" || k === "ref") {
@@ -64,28 +64,25 @@ const groupByRowDatabases = (rows: Record<string, any>[]) => {
         }
 
         const joined = collectJoined(k);
-        const vals = joined ? splitValues(joined) : [];
+        const vals = joined ? dedupeValues(normalizeValues(joined)) : [];
 
         const perRowVals = groupRows.map((r) =>
-          r[k] == null || r[k] === "" ? [] : splitValues(r[k])
+          r[k] == null || r[k] === "" ? [] : dedupeValues(normalizeValues(r[k]))
         );
 
-        // Try to use value from the source row for this ds entry
         const sourceVals = perRowVals[sourceRowIndex] || [];
         const desiredDs = dsValues[idx];
-        const matchInSource = sourceVals.find((v) => v === desiredDs);
+        const matchInSource = sourceVals.find((v) => v.toLowerCase() === (desiredDs || "").toLowerCase());
         if (matchInSource) {
           newRow[k] = matchInSource;
           return;
         }
 
-        // If source row has exactly N values, use its i-th
         if (sourceVals.length === N && sourceVals[i] != null) {
           newRow[k] = sourceVals[i];
           return;
         }
 
-        // Otherwise fallback to earlier heuristics: any row with i-th
         const rowWithExactN = perRowVals.find((arr) => arr.length === N && arr[i] != null);
         if (rowWithExactN) {
           newRow[k] = rowWithExactN[i];
@@ -116,4 +113,10 @@ const groupByRowDatabases = (rows: Record<string, any>[]) => {
   return result;
 };
 
-export default groupByRowDatabases;
+const rows = [
+  { ti: 'T', ref: 'R', ds_en: 'A; B', ds_ty: 'X;Y', col1: 'p' },
+  { ti: 'T', ref: 'R', ds_en: 'C', ds_ty: 'Z', col1: 'q' },
+  { ti: 'T', ref: 'R', ds_en: 'D;E;F', ds_ty: '', col1: 'r' },
+];
+
+console.log(JSON.stringify(groupByRowDatabases(rows), null, 2));

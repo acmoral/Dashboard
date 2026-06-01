@@ -73,6 +73,12 @@ export function Sidebar({ navigation: { activeItem,onTabClick, onItemClick },
               <Info className="w-4 h-4 mr-2" />
               About 
             </Button>
+
+            <Button variant={activeItem === 'referencias' ? 'secondary' : 'ghost'} className="w-full justify-start" onClick={() => onButtonClick('referencias', 'referencias')}>
+              <SquareArrowOutDownRight className="w-4 h-4 mr-2" />
+              References
+            </Button>
+
            </div>
         </div>
         <div className="space-y-4 mt-4">

@@ -27,10 +27,13 @@ interface AuthorsTableProps {
 // Visible columns
 // -----------------------------
 function getVisibleColumns(data: any[], whereToShow: 'authors' | 'databases' = 'authors'): (keyof ColumnConfig)[] {
-  if (data.length === 0) return [];
-  const keys = Object.keys(data[0]);
+  // Use the explicit ordering from `columnConfig` rather than the order of fields
+  // in the data rows. This lets you control column order by arranging
+  // the entries in `src/components/configTable.tsx` or by adding an `order`
+  // property to the config and sorting by it (see note below).
+  const keys = Object.keys(columnConfig);
   return keys.filter(
-    key => columnConfig[key as keyof ColumnConfig]?.visible === whereToShow
+    key => columnConfig[key as keyof ColumnConfig]?.visible === whereToShow || columnConfig[key as keyof ColumnConfig]?.visible === 'both'
   ) as (keyof ColumnConfig)[];
 }
 

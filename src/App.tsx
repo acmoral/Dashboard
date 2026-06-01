@@ -10,6 +10,7 @@ import { calculatePercentages } from './components/calculatePercentages';
 import { filterRows } from './components/filterRows';
 import { DashboardHeader } from './components/DashboardHeader';
 import { columnConfig } from './components/configTable';
+import { ReferenceTable } from './components/ReferenceTable';
 
 export default function App() {
 
@@ -145,7 +146,8 @@ export default function App() {
 
     return (
       config.filter &&
-      config.visible === visibleState
+      (config.visible === visibleState
+      || config.visible === 'both')
     );
   }) as FilterableKeys[];
 
@@ -218,7 +220,8 @@ export default function App() {
         const config = columnConfig[key as FilterableKeys];
         return (
           config?.locationofFilter === location &&
-          config?.visible === visibleState
+          (config?.visible === visibleState
+          || config?.visible === 'both')
         );
       })
       .map(([key, active]) => {
@@ -351,7 +354,9 @@ export default function App() {
               </div>
             ) : activeTab === 'acerca' ? (
               <AcercaDe />
-            )  : null}
+            )  : activeTab === 'referencias' ? (
+              <ReferenceTable rows={rows} />
+            ) : null}
           </div>
         </div>
       </div>

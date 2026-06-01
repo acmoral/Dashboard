@@ -138,17 +138,17 @@ export function TableGen({ visibleColumns, filteredRows, filters, tableType }: {
                             columnKey={key}
                             rowIndex={index}
                           />
-                          {isDatabaseTable && cellIndex === 0 && hoveredRowIndex === index && row.ti && hoverPosition && (
+                          {isDatabaseTable && cellIndex === 0 && hoveredRowIndex === index && row.cit && hoverPosition && (
                             <div
-                              className="fixed z-20 w-96 rounded border border-slate-200 bg-white p-2 text-xs shadow-lg"
+                              className="fixed z-20 w-20 rounded border border-slate-200 bg-white p-2 text-xs shadow-lg"
                               style={{
                                 left: hoverPosition.x + 12,
                                 top: hoverPosition.y + 12,
                                 maxWidth: '24rem',
                               }}
                             >
-                              <div className="font-semibold">Title</div>
-                              <div className="whitespace-normal">{row.ti}</div>
+                              <div className="font-semibold">Citation</div>
+                              <div className="whitespace-normal">{row.cit}</div>
                             </div>
                           )}
                         </div>

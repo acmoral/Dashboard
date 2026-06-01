@@ -1,15 +1,15 @@
 export function AcercaDe() {
   return (
     <div className="h-screen flex flex-col items-center justify-around text-center py-12 px-12 mx-2 my-2 overflow-y-auto">
-      <h1 className="text-2xl mt-4 mb-4 pb-4 border-border border-b text-muted-foreground font-semibold">
+      <h1 className="text-2xl mt-4 mb-4 pb-4 border-border border-b font-semibold">
         Scoping review for the identification and characterization of authors, research groups, and secondary-use databases in the field of Pharmacoepidemiology in Colombia, Ecuador, and Chile
       </h1>
 
       {/* Authors list */}
-      <h2 className="mt-6 text-xl font-semibold text-muted-foreground">
+      <h2 className="mt-6 text-xl font-semibold ">
         Authors of this work:
       </h2>
-      <ul className="mt-4 mb-4 pb-4 text-lg text-muted-foreground w-full list-disc list-inside border-border border-b">
+      <ul className="mt-4 mb-4 pb-4 text-sm text-muted-foreground w-full list-disc list-inside border-border border-b">
         <li>
           <a
             className="underline"
@@ -98,18 +98,18 @@ export function AcercaDe() {
       </ul>
 
       {/* Project description */}
-      <h2 className="mt-6 text-xl font-semibold text-muted-foreground">
+      <h2 className="mt-6 text-xl font-semibold ">
         Project description:
       </h2>
-      <p className="mt-4 text-lg text-muted-foreground max-w-md mx-auto border-border border-b pb-4 mb-4">
+      <p className="mt-4 text-lg  max-w-md mx-auto border-border border-b pb-4 mb-4">
         The purpose of this scoping review is to explore the resources that have been used and are currently available for conducting pharmacoepidemiological research in Chile, Colombia, and Ecuador. Resources are understood as the different researchers and data sources. The objective is to identify the current state of the field and develop an open-access repository of researchers, groups, and databases. This information will provide a starting point for collaborative pharmacoepidemiological studies using multiple data sources.
       </p>
 
       {/* Website description */}
-      <h2 className="mt-6 text-xl font-semibold text-muted-foreground">
+      <h2 className="mt-6 text-xl font-semibold">
         Website description:
       </h2>
-      <p className="mt-4 text-lg text-muted-foreground max-w-md mx-auto">
+      <p className="mt-4 text-lg max-w-md mx-auto">
         This website aims to present the results of the scoping review and provide access to the collected information on researchers, groups, and databases in the field of pharmacoepidemiology in Chile, Colombia, and Ecuador.
       </p>
     </div>
