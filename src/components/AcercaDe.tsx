@@ -88,13 +88,6 @@ export function AcercaDe() {
           Jorge Machado Alba (Expert advisor)
           – Research Group in Pharmacoepidemiology and Pharmacovigilance, Technological University of Pereira. Pereira, Colombia.
         </li>
-        <li>
-          Mónica Tarapués (Expert advisor)
-          – Ecuadorian Health Association, Medicines and Patient Safety. Quito, Ecuador.
-        </li>
-        <li>
-          Ximena Lagos Lili Acuña (Expert advisor) - Chile.
-        </li>
       </ul>
 
       {/* Project description */}

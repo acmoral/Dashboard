@@ -37,7 +37,8 @@ export const columnConfig: Record<string, ColumnConfigItem> = {
     label: "Email",
     visible: 'authors',
     filter: false,
-    aggregation: {split: true}
+    aggregation: {split: true},
+    format: (v: string) => v.split(";")[0],
   },
 
   cor_afil: {
